@@ -8,11 +8,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#define STACK_SIZE		4096
+#define STACK_SIZE		65536
 #define MAX_FACT		21
 
 #define PUSH( )			stack_vals[st_pos++] = a; if( st_pos >= STACK_SIZE ) exit( fprintf( stderr, "Stack limit reached.\n" ) )
 #define POP( x )		x = stack_vals[--st_pos]
+#define PEEK( x )		if( st_pos < x ) exit( fprintf( stderr, "Cannot peek beyond stack size.\n" ) ); b = stack_vals[--x]
 
 #define NEED( x )		if( st_pos < x ) exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) ); POP( b ); if( x == 2 ) POP( a )
 #define STATE( )		printf( "a = %f, b = %f\n", a, b )
@@ -148,7 +149,65 @@ int64_t comb( int64_t a, int64_t b )
 }
 
 
+void stack_sd( void )
+{
+	double m, s, a, b;
+	int j;
+
+	m = 0;
+	j = st_pos;
+
+	while( j > 0 )
+	{
+		PEEK( j );
+		m += b;
+	}
+	m /= (double) st_pos;
+	// m is now the mean
+	a = m;
+
+	j = st_pos;
+	s = 0;
+
+	while( st_pos > 0 )
+	{
+		POP( b );
+		b -= m;
+		s += b * b;
+	}
+	s /= (double) j;
+	s = sqrt( s );
+	// s is now the root mean square diff
+
+	// push both the mean and stddev
+
+	a = m;
+	PUSH( );
+	a = s;
+	PUSH( );
+}
+
+
+
 int int_out = 0;
+
+void report( void )
+{
+	double a, b;
+	int64_t j;
+
+	NEED( 1 );
+	a = b;
+
+	if( int_out )
+	{
+		j = (int64_t) a;
+		printf( "%ld\n", j );
+	}
+	else
+		printf( "%f\n", a );
+}
+
 
 void handle_arg( char *arg )
 {
@@ -307,6 +366,11 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
+			case 'D':
+				stack_sd( );
+				report( );
+				break;
+
 			case '=':
 				NEED( 2 );
 				if( a == b )
@@ -364,22 +428,6 @@ void handle_arg( char *arg )
 	}
 }
 
-void report( void )
-{
-	double a, b;
-	int64_t j;
-
-	NEED( 1 );
-	a = b;
-
-	if( int_out )
-	{
-		j = (int64_t) a;
-		printf( "%ld\n", j );
-	}
-	else
-		printf( "%f\n", a );
-}
 
 
 

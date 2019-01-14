@@ -28,6 +28,7 @@ void usage( void )
 	printf( "\
 Usage:  rpcalc ?\n\
         rpcalc <args> ...\n\
+		cmd | rpcalc\n\
 \n\
 Rpcalc is a simple reverse-polish calculator.  It is stack based.\n\
 The arguments are listed below.  The numbers in brackets after the\n\
@@ -36,85 +37,36 @@ the result is pushed back onto the stack.  When all arguments have\n\
 been handled, the top stack element is reported.\n\
 \n\
 All numeric arguments are treated as type double.\n\
+A (i) denotes integer conversion is applied before operations.\n\
 \n\
- <Numbers>\n\
-    These are consumed and pushed onto the stack.\n\
-\n\
- + (2)\n\
-    Add the numbers together\n\
-\n\
- - (2)\n\
-    Subtract the second number from the first\n\
-\n\
- * or x (2)\n\
-    Multiply the numbers together (note, shells often eat *)\n\
-\n\
- / (2)\n\
-    Divide the first number by the second number\n\
-\n\
- s (1)\n\
-    The square root of the argument\n\
-\n\
- c (1)\n\
-    The cube root of the argument\n\
-\n\
- n (1)\n\
-    The natural log of the argument\n\
-\n\
- e (1)\n\
-    The exponent of the argument\n\
-\n\
- l (2)\n\
-    The first argument left-shifted by the second\n\
-    (Integer conversion is performed on both arguments)\n\
-\n\
- r (2)\n\
-    The first argument right-shifted by the second\n\
-    (Integer conversion is performed on both arguments)\n\
-\n\
- f (1)\n\
-    Factorial of the number\n\
-\n\
- P (2)\n\
-    Permutations of the second number of choices from the first\n\
-    (Integer conversion is performed on both arguments)\n\
-\n\
- C (2)\n\
-    Combinations of the second number of choices from the first\n\
-    (Integer conversion is performed on both arguments)\n\
-\n\
- S (whole stack)\n\
-    The sum of all numbers currently on the stack\n\
-\n\
- M (whole stack)\n\
-    The mean of all numbers currently on the stack\n\
-\n\
- I (0)\n\
-    Convert output to integer first\n\
-\n\
- ^ (2)\n\
-    Pushes the greater of the two arguments\n\
-\n\
- _ (2)\n\
-    Pushes the lesser of the two arguments\n\
-\n\
- = (2)\n\
-    If the two numbers are equal, push 1, else push 0\n\
-\n\
- G (2)\n\
-    If the first number is greater push 1, else push 0\n\
-\n\
- L (2)\n\
-    If the first number is lesser push 1, else push 0\n\
-\n\
- N (1)\n\
-    Converts 0 to 1, and non-zero to 0\n\
-\n\
- , (0)\n\
-    Separator for numbers together in one argument\n\
-\n\
- ? (0)\n\
-    Print this help.\n\n" );
+ <Numbers>      These are consumed and pushed onto the stack.\n\
+ + (2)          Add the numbers together\n\
+ - (2)          Subtract the second number from the first\n\
+ * or x (2)     Multiply the numbers together (note, shells often eat *)\n\
+ / (2)          Divide the first number by the second number\n\
+ s (1)          The square root of the argument\n\
+ c (1)          The cube root of the argument\n\
+ n (1)          The natural log of the argument\n\
+ e (1)          The exponent of the argument\n\
+ ^ (2)          Raise the first number to the power of the second\n\
+ l (2) (i)      The first argument left-shifted by the second\n\
+ r (2) (i)      The first argument right-shifted by the second\n\
+ f (1) (i)      Factorial of the number\n\
+ p (2) (i)      Permutations of the second number of choices from the first\n\
+ C (2) (i)      Combinations of the second number of choices from the first\n\
+ S (stack)      The sum of all numbers currently on the stack\n\
+ M (stack)      The mean of all numbers currently on the stack\n\
+ I (0)          Convert output to integer first\n\
+ g (2)          Pushes the greater of the two arguments\n\
+ _ (2)          Pushes the lesser of the two arguments\n\
+ = (2)          If the two numbers are equal, push 1, else push 0\n\
+ G (2)          If the first number is greater push 1, else push 0\n\
+ L (2)          If the first number is lesser push 1, else push 0\n\
+ N (1)          Converts 0 to 1, and non-zero to 0\n\
+ , (0)          Separator for numbers together in one argument\n\
+ E              Replaced with mathematical constant e (2.7818...)\n\
+ P              Replaced with mathematical constant PI (3.1416...)\n\
+ ? (0)          Print this help.\n\n" );
 }
 
 
@@ -290,9 +242,25 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
+			case 'E':
+				a = M_E;
+				PUSH( );
+				break;
+
+			case 'P':
+				a = M_PI;
+				PUSH( );
+				break;
+
 			case 'e':
 				NEED( 1 );
 				a = exp( b );
+				PUSH( );
+				break;
+
+			case '^':
+				NEED( 2 );
+				a = pow( a, b );
 				PUSH( );
 				break;
 
@@ -320,7 +288,7 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
-			case 'P':
+			case 'p':
 				NEED( 2 );
 				j = (int64_t) a;
 				k = (int64_t) b;
@@ -398,7 +366,7 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
-			case '^':
+			case 'g':
 				NEED( 2 );
 				if( b > a )
 					a = b;

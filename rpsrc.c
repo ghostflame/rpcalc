@@ -16,6 +16,7 @@
 #define PEEK( x )		if( st_pos < x ) exit( fprintf( stderr, "Cannot peek beyond stack size.\n" ) ); b = stack_vals[--x]
 
 #define NEED( x )		if( st_pos < x ) exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) ); POP( b ); if( x == 2 ) POP( a )
+#define BROKEN( )		exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) )
 #define STATE( )		printf( "a = %f, b = %f\n", a, b )
 
 static double stack_vals[STACK_SIZE];
@@ -28,7 +29,7 @@ void usage( void )
 	printf( "\
 Usage:  rpcalc ?\n\
         rpcalc <args> ...\n\
-		cmd | rpcalc\n\
+        <cmd> | rpcalc\n\
 \n\
 Rpcalc is a simple reverse-polish calculator.  It is stack based.\n\
 The arguments are listed below.  The numbers in brackets after the\n\
@@ -40,33 +41,49 @@ All numeric arguments are treated as type double.\n\
 A (i) denotes integer conversion is applied before operations.\n\
 \n\
  <Numbers>      These are consumed and pushed onto the stack.\n\
- + (2)          Add the numbers together\n\
- - (2)          Subtract the second number from the first\n\
- * or x (2)     Multiply the numbers together (note, shells often eat *)\n\
- / (2)          Divide the first number by the second number\n\
- s (1)          The square root of the argument\n\
- c (1)          The cube root of the argument\n\
- n (1)          The natural log of the argument\n\
- e (1)          The exponent of the argument\n\
- ^ (2)          Raise the first number to the power of the second\n\
- l (2) (i)      The first argument left-shifted by the second\n\
- r (2) (i)      The first argument right-shifted by the second\n\
- f (1) (i)      Factorial of the number\n\
- p (2) (i)      Permutations of the second number of choices from the first\n\
- C (2) (i)      Combinations of the second number of choices from the first\n\
- S (stack)      The sum of all numbers currently on the stack\n\
- M (stack)      The mean of all numbers currently on the stack\n\
- I (0)          Convert output to integer first\n\
- g (2)          Pushes the greater of the two arguments\n\
- _ (2)          Pushes the lesser of the two arguments\n\
- = (2)          If the two numbers are equal, push 1, else push 0\n\
- G (2)          If the first number is greater push 1, else push 0\n\
- L (2)          If the first number is lesser push 1, else push 0\n\
- N (1)          Converts 0 to 1, and non-zero to 0\n\
- , (0)          Separator for numbers together in one argument\n\
- E              Replaced with mathematical constant e (2.7818...)\n\
- P              Replaced with mathematical constant PI (3.1416...)\n\
- ? (0)          Print this help.\n\n" );
+ +  (2)         Add the numbers together\n\
+ -  (2)         Subtract the second number from the first\n\
+ * or x  (2)    Multiply the numbers together (note, shells often eat *)\n\
+ /  (2)         Divide the first number by the second number\n\
+rs  (1)         The square root of the argument\n\
+rc  (1)         The cube root of the argument\n\
+nl  (1)         The natural log of the argument\n\
+ne  (1)         The exponent of the argument\n\
+ ^  (2)         Raise the first number to the power of the second\n\
+ a  (1)         Absolute value of the argument\n\
+sl  (2) (i)     The first argument left-shifted by the second\n\
+sr  (2) (i)     The first argument right-shifted by the second\n\
+NF  (1) (i)     Factorial of the number\n\
+NP  (2) (i)     Permutations of the second number of choices from the first\n\
+NC  (2) (i)     Combinations of the second number of choices from the first\n\
+SS  (stack)     The sum of all numbers currently on the stack\n\
+SM  (stack)     The mean of all numbers currently on the stack\n\
+SD  (stack)     The std-dev of all numbers currently on the stack\n\
+SU  (stack)     The highest of all numbers currently on the stack\n\
+SL  (stack)     The lowest of all numbers currently on the stack\n\
+ts  (1)         Trigonometry - sine of the argument\n\
+tc  (1)         Tigonomentry - cosine of the argument\n\
+tt  (1)         Trigonometry - tangent of the argument\n\
+Ts  (1)         Trigonometry - arc sine of the argument\n\
+Tc  (1)         Tigonomentry - arc cosine of the argument\n\
+Tt  (1)         Trigonometry - arc tangent of the argument\n\
+ R  (1)         Convert argument from degrees to radians\n\
+ D  (1)         Convert argument from radians to degrees\n\
+ g  (2)         Pushes the greater of the two arguments\n\
+ l  (2)         Pushes the lesser of the two arguments\n\
+ G  (2)         If the first number is greater push 1, else push 0\n\
+ L  (2)         If the first number is lesser push 1, else push 0\n\
+ =  (2)         If the two numbers are equal, push 1, else push 0\n\
+ _  (1)         Converts 0 to 1, and non-zero to 0\n\
+bn  (1) (i)     Bitwise NOT\n\
+ba  (2) (i)     Bitwise AND\n\
+bo  (2) (i)     Bitwise OR\n\
+bx  (2) (i)     Bitwise XOR\n\
+ ,  (0)         Separator for numbers together in one argument\n\
+cE              Push mathematical constant e (2.7818...)\n\
+cP              Push mathematical constant Pi (3.1416...)\n\
+ I  (0)         Convert output to integer first\n\
+ ?  (0)         Print this help.\n\n" );
 }
 
 
@@ -224,38 +241,137 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
-			case 's':
+			case 'r':
+				p++;
+				switch( *p )
+				{
+					case 's':
+						NEED( 1 );
+						a = sqrt( b );
+						PUSH( );
+						break;
+
+					case 'c':
+						NEED( 1 );
+						a = cbrt( b );
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
+				break;
+
+			case 'n':
+				p++;
+				switch( *p )
+				{
+					case 'l':
+						NEED( 1 );
+						a = log( b );
+						PUSH( );
+						break;
+
+					case 'e':
+						NEED( 1 );
+						a = exp( b );
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
+				break;
+
+			case 't':
+				p++;
+				switch( *p )
+				{
+					case 's':
+						NEED( 1 );
+						a = sin( b );
+						PUSH( );
+						break;
+
+					case 'c':
+						NEED( 1 );
+						a = cos( b );
+						PUSH( );
+						break;
+
+					case 't':
+						NEED( 1 );
+						a = tan( b );
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
+				break;
+
+			case 'T':
+				p++;
+				switch( *p )
+				{
+					case 's':
+						NEED( 1 );
+						a = asin( b );
+						PUSH( );
+						break;
+
+					case 'c':
+						NEED( 1 );
+						a = acos( b );
+						PUSH( );
+						break;
+
+					case 't':
+						NEED( 1 );
+						a = atan( b );
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
+				break;
+
+			case 'R':
 				NEED( 1 );
-				a = sqrt( b );
+				a = ( b * M_PI ) / 180.0;
+				PUSH( );
+				break;
+
+			case 'D':
+				NEED( 1 );
+				a = ( b * 180.0 ) / M_PI;
+				PUSH( );
+				break;
+
+			case 'a':
+				NEED( 1 );
+				a = fabs( b );
 				PUSH( );
 				break;
 
 			case 'c':
-				NEED( 1 );
-				a = cbrt( b );
-				PUSH( );
-				break;
+				p++;
+				switch( *p )
+				{
+					case 'E':
+						a = M_E;
+						PUSH( );
+						break;
 
-			case 'n':
-				NEED( 1 );
-				a = log( b );
-				PUSH( );
-				break;
+					case 'P':
+						a = M_PI;
+						PUSH( );
+						break;
 
-			case 'E':
-				a = M_E;
-				PUSH( );
-				break;
-
-			case 'P':
-				a = M_PI;
-				PUSH( );
-				break;
-
-			case 'e':
-				NEED( 1 );
-				a = exp( b );
-				PUSH( );
+					default:
+						BROKEN( );
+				}
 				break;
 
 			case '^':
@@ -264,68 +380,126 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
-			case 'l':
-				NEED( 2 );
-				j = (int64_t) a;
-				STATE( );
-				j <<= (int) b;
-				a = (double) j;
-				PUSH( );
-				break;
+			case 's':
+				p++;
+				switch( *p )
+				{
+					case 'l':
+						NEED( 2 );
+						j = (int64_t) a;
+						STATE( );
+						j <<= (int) b;
+						a = (double) j;
+						PUSH( );
+						break;
 
-			case 'r':
-				NEED( 2 );
-				j = (int64_t) a;
-				j >>= (int) b;
-				a = (double) j;
-				PUSH( );
-				break;
+					case 'r':
+						NEED( 2 );
+						j = (int64_t) a;
+						j >>= (int) b;
+						a = (double) j;
+						PUSH( );
+						break;
 
-			case 'f':
-				NEED( 1 );
-				j = (int64_t) b;
-				a = (double) factorial( j );
-				PUSH( );
-				break;
-
-			case 'p':
-				NEED( 2 );
-				j = (int64_t) a;
-				k = (int64_t) b;
-				a = (double) perms( j, k );
-				PUSH( );
-				break;
-
-			case 'C':
-				NEED( 2 );
-				j = (int64_t) a;
-				k = (int64_t) b;
-				a = (double) comb( j, k );
-				PUSH( );
-				break;
-
-			case 'S':
-				a = 0;
-				while( st_pos > 0 ) {
-					POP( b );
-					a += b;
+					default:
+						BROKEN( );
 				}
-				PUSH( );
-				break;
-
-			case 'M':
-				a = 0;
-				j = st_pos;
-				while( st_pos > 0 ) {
-					POP( b );
-					a += b;
-				}
-				b = (double) j;
-				a /= b;
-				PUSH( );
 				break;
 
 			case 'N':
+				p++;
+				switch( *p )
+				{
+					case 'F':
+						NEED( 1 );
+						j = (int64_t) b;
+						a = (double) factorial( j );
+						PUSH( );
+						break;
+
+					case 'P':
+						NEED( 2 );
+						j = (int64_t) a;
+						k = (int64_t) b;
+						a = (double) perms( j, k );
+						PUSH( );
+						break;
+
+					case 'C':
+						NEED( 2 );
+						j = (int64_t) a;
+						k = (int64_t) b;
+						a = (double) comb( j, k );
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
+				break;
+
+			case 'S':
+				p++;
+				switch( *p )
+				{
+					case 'S':
+						a = 0;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							a += b;
+						}
+						PUSH( );
+						break;
+
+					case 'M':
+						a = 0;
+						j = st_pos;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							a += b;
+						}
+						b = (double) j;
+						a /= b;
+						PUSH( );
+						break;
+
+					case 'D':
+						stack_sd( );
+						report( );
+						break;
+
+					case 'U':
+						NEED( 1 );
+						a = b;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							if( b > a )
+								a = b;
+						}
+						PUSH( );
+						break;
+
+					case 'L':
+						NEED( 1 );
+						a = b;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							if( b < a )
+								a = b;
+						}
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
+				break;
+
+			case '_':
 				NEED( 1 );
 				if( b < 0 || b > 0 )
 					a = 0;
@@ -334,9 +508,43 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
-			case 'D':
-				stack_sd( );
-				report( );
+			case 'b':
+				p++;
+				switch( *p )
+				{
+					case 'n':
+						NEED( 1 );
+						a = (double) ~((int) b);
+						PUSH( );
+						break;
+
+					case 'a':
+						NEED( 2 );
+						j = (int) a;
+						k = (int) b;
+						a = (double) ( j & k );
+						PUSH( );
+						break;
+
+					case 'o':
+						NEED( 2 );
+						j = (int) a;
+						k = (int) b;
+						a = (double) ( j | k );
+						PUSH( );
+						break;
+
+					case 'x':
+						NEED( 2 );
+						j = (int) a;
+						k = (int) b;
+						a = (double) ( j ^ k );
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
 				break;
 
 			case '=':
@@ -373,7 +581,7 @@ void handle_arg( char *arg )
 				PUSH( );
 				break;
 
-			case '_':
+			case 'l':
 				NEED( 2 );
 				if( b < a )
 					a = b;

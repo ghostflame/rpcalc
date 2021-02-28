@@ -51,6 +51,7 @@ rc  (1)         The cube root of the argument\n\
 nl  (1)         The natural log of the argument\n\
 ne  (1)         The exponent of the argument\n\
 in  (1)         The inverse of the argument 1/X\n\
+rd  (1)         Round the argument to the nearest integer\n\
  ^  (2)         Raise the first number to the power of the second\n\
  a  (1)         Absolute value of the argument\n\
 sl  (2) (i)     The first argument left-shifted by the second\n\
@@ -308,6 +309,12 @@ void handle_arg( char *arg )
 					case 'c':
 						NEED( 1 );
 						a = cbrt( b );
+						PUSH( );
+						break;
+
+					case 'd':
+						NEED( 1 );
+						a = round( b );
 						PUSH( );
 						break;
 

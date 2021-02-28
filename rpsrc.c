@@ -3,12 +3,13 @@
 #include <math.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#define STACK_SIZE		65536
+#define STACK_SIZE		131072
 #define MAX_FACT		21
 
 #define PUSH( )			stack_vals[st_pos++] = a; if( st_pos >= STACK_SIZE ) exit( fprintf( stderr, "Stack limit reached.\n" ) )
@@ -49,6 +50,7 @@ rs  (1)         The square root of the argument\n\
 rc  (1)         The cube root of the argument\n\
 nl  (1)         The natural log of the argument\n\
 ne  (1)         The exponent of the argument\n\
+in  (1)         The inverse of the argument 1/X\n\
  ^  (2)         Raise the first number to the power of the second\n\
  a  (1)         Absolute value of the argument\n\
 sl  (2) (i)     The first argument left-shifted by the second\n\
@@ -57,20 +59,27 @@ NF  (1) (i)     Factorial of the number\n\
 NP  (2) (i)     Permutations of the second number of choices from the first\n\
 NC  (2) (i)     Combinations of the second number of choices from the first\n\
 SS  (stack)     The sum of all numbers currently on the stack\n\
+SP  (stack)     The product of all numbers currently on the stack\n\
+SG  (stack)     The geometric mean of all numbers currently on the stack\n\
+SQ  (stack)     The quadratic mean (root mean square) of the entire stack\n\
 SM  (stack)     The mean of all numbers currently on the stack\n\
 SD  (stack)     The std-dev of all numbers currently on the stack\n\
 SU  (stack)     The highest of all numbers currently on the stack\n\
 SL  (stack)     The lowest of all numbers currently on the stack\n\
+SB  (stack)     The span of all numbers currently on the stack\n\
+SX  (stack)     Unique-ify the stack (eliminate duplicates)\n\
 ts  (1)         Trigonometry - sine of the argument\n\
-tc  (1)         Tigonomentry - cosine of the argument\n\
+tc  (1)         Trigonometry - cosine of the argument\n\
 tt  (1)         Trigonometry - tangent of the argument\n\
 Ts  (1)         Trigonometry - arc sine of the argument\n\
-Tc  (1)         Tigonomentry - arc cosine of the argument\n\
+Tc  (1)         Trigonometry - arc cosine of the argument\n\
 Tt  (1)         Trigonometry - arc tangent of the argument\n\
  R  (1)         Convert argument from degrees to radians\n\
  D  (1)         Convert argument from radians to degrees\n\
  g  (2)         Pushes the greater of the two arguments\n\
  l  (2)         Pushes the lesser of the two arguments\n\
+ m  (2)         The first argument module the second\n\
+ M  (2)         If the first %% the second is 0, push 0, else push 1\n\
  G  (2)         If the first number is greater push 1, else push 0\n\
  L  (2)         If the first number is lesser push 1, else push 0\n\
  =  (2)         If the two numbers are equal, push 1, else push 0\n\
@@ -116,6 +125,33 @@ int64_t comb( int64_t a, int64_t b )
 
 	return perms( a, b ) / factorial( a - b );
 }
+
+
+void stack_unique( void )
+{
+	double a, spare_stack[STACK_SIZE];
+	int i, j = 0;
+
+	while( st_pos > 0 )
+	{
+		POP( a );
+		for( i = 0; i < j; ++i )
+			if( spare_stack[i] == a )
+				break;
+
+		if( i == j )
+		{
+			spare_stack[j++] = a;
+		}
+	}
+
+	for( i = j; i > 0; --i )
+	{
+		a = spare_stack[i - 1];
+		PUSH( );
+	}
+}
+
 
 
 void stack_sd( void )
@@ -181,7 +217,7 @@ void report( void )
 void handle_arg( char *arg )
 {
 	int64_t j, k;
-	double a, b;
+	double a, b, c;
 	char *p, *q;
 
 	for( p = arg; *p; p++ )
@@ -239,6 +275,24 @@ void handle_arg( char *arg )
 				NEED( 2 );
 				a /= b;
 				PUSH( );
+				break;
+
+			case 'i':
+				p++;
+				switch( *p )
+				{
+					case 'n':
+						NEED( 1 );
+						if( b == 0.0 )
+							BROKEN( );
+						a = 1.0/b;
+						PUSH( );
+						break;
+
+					default:
+						BROKEN( );
+				}
+
 				break;
 
 			case 'r':
@@ -406,6 +460,25 @@ void handle_arg( char *arg )
 				}
 				break;
 
+			case 'm':
+				NEED( 2 );
+				j = (int64_t) a;
+				k = (int64_t) b;
+				a = (double) ( j % k );
+				PUSH( );
+				break;
+
+			case 'M':
+				NEED( 2 );
+				j = (int64_t) a;
+				k = (int64_t) b;
+				if( ( j % k ) == 0 )
+					a = 0.0;
+				else
+					a = 1.0;
+				PUSH( );
+				break;
+
 			case 'N':
 				p++;
 				switch( *p )
@@ -452,22 +525,63 @@ void handle_arg( char *arg )
 						PUSH( );
 						break;
 
+					case 'P':
+						a = 1;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							a *= b;
+						}
+						PUSH( );
+						break;
+
+					case 'G':
+						a = 0;
+						if( !( j = st_pos ) )
+							j = 1;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							a += log( b );
+						}
+						b = a / ( (double) j );
+						a = exp( b );
+						PUSH( );
+						break;
+
+					case 'Q':
+						a = 0;
+						if( !( j = st_pos ) )
+							j = 1;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							a += b * b;
+						}
+						a = sqrt( a / (double) j );
+						PUSH( );
+						break;
+
 					case 'M':
 						a = 0;
-						j = st_pos;
+						if( !( j = st_pos ) )
+							j = 1;
 						while( st_pos > 0 )
 						{
 							POP( b );
 							a += b;
 						}
-						b = (double) j;
-						a /= b;
+						a /= (double) j;
 						PUSH( );
 						break;
 
 					case 'D':
 						stack_sd( );
 						report( );
+						break;
+
+					case 'X':
+						stack_unique( );
 						break;
 
 					case 'U':
@@ -491,6 +605,21 @@ void handle_arg( char *arg )
 							if( b < a )
 								a = b;
 						}
+						PUSH( );
+						break;
+
+					case 'B':
+						NEED( 1 );
+						a = c = b;
+						while( st_pos > 0 )
+						{
+							POP( b );
+							if( b < c )
+							 	c = b;
+							else if( b > a )
+								a = b;
+						}
+						a -= c;
 						PUSH( );
 						break;
 
@@ -648,16 +777,27 @@ int handle_stdin( void )
 	return 1;
 }
 
+void alarm_handler( int sig )
+{
+	fprintf( stderr, "Guess not.\n" );
+	exit( 1 );
+}
+
 
 int main( int ac, char **av )
 {
 	int i;
+
+	signal( SIGALRM, &alarm_handler );
 
 	memset( factorials, 0, MAX_FACT * sizeof( int64_t ) );
 
 	// no args? Let's look at stdin
 	if( ac == 1 )
 	{
+		// don't hang
+		alarm( 3 );
+
 		if( handle_stdin( ) != 0 )
 		{
 			fprintf( stderr, "Usage: rpcalc <formula as args>\n" );

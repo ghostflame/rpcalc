@@ -1,6 +1,6 @@
 CC     = /usr/bin/gcc -std=c11 $(WFLAGS)
 
-WFLAGS = -Wall -Wshadow -Wpedantic -Wextra
+WFLAGS = -Wall -Wshadow -Wpedantic -Wextra -Wno-unused-parameter
 CFLAGS = -O3
 
 FILES  = rpsrc

@@ -9,7 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define STACK_SIZE		131072
+#define STACK_SIZE		262144
 #define MAX_FACT		21
 
 #define PUSH( )			stack_vals[st_pos++] = a; if( st_pos >= STACK_SIZE ) exit( fprintf( stderr, "Stack limit reached.\n" ) )
@@ -779,7 +779,7 @@ int handle_stdin( void )
 
 void alarm_handler( int sig )
 {
-	fprintf( stderr, "Guess not.\n" );
+	usage( );
 	exit( 1 );
 }
 

@@ -65,11 +65,13 @@ SP  (stack)     The product of all numbers currently on the stack\n\
 SG  (stack)     The geometric mean of all numbers currently on the stack\n\
 SQ  (stack)     The quadratic mean (root mean square) of the entire stack\n\
 SM  (stack)     The mean of all numbers currently on the stack\n\
+SE  (stack)     The median value of all numbers currently on the stack\n\
 SD  (stack)     The std-dev of all numbers currently on the stack\n\
 SU  (stack)     The highest of all numbers currently on the stack\n\
 SL  (stack)     The lowest of all numbers currently on the stack\n\
 SB  (stack)     The span of all numbers currently on the stack\n\
 SX  (stack)     Unique-ify the stack (eliminate duplicates)\n\
+SC  (stack)     Count the numbers on the stack\n\
 ts  (1)         Trigonometry - sine of the argument\n\
 tc  (1)         Trigonometry - cosine of the argument\n\
 tt  (1)         Trigonometry - tangent of the argument\n\
@@ -126,6 +128,31 @@ int64_t comb( int64_t a, int64_t b )
 		return -1;
 
 	return perms( a, b ) / factorial( a - b );
+}
+
+int stack_compare( const void *p1, const void *p2 )
+{
+	double d1 = *((double *) p1);
+	double d2 = *((double *) p2);
+
+	return ( d1 > d2 ) ? 1 : ( d1 < d2 ) ? -1 : 0;
+}
+
+void stack_median( void )
+{
+	double *tmpstack;
+
+	if( st_pos == 0 )
+		return;
+
+	tmpstack = calloc( st_pos, sizeof( double ) );
+	memcpy( tmpstack, stack_vals, st_pos * sizeof( double ) );
+	qsort( tmpstack, st_pos, sizeof( double ), &stack_compare );
+
+	stack_vals[0] = tmpstack[st_pos >> 1];
+	st_pos = 1;
+
+	free( tmpstack );
 }
 
 
@@ -529,6 +556,12 @@ void handle_arg( char *arg )
 				p++;
 				switch( *p )
 				{
+					case 'C':
+						a = (double) st_pos;
+						st_pos = 0;
+						PUSH( );
+						break;
+
 					case 'S':
 						a = 0;
 						while( st_pos > 0 )
@@ -592,6 +625,10 @@ void handle_arg( char *arg )
 					case 'D':
 						stack_sd( );
 						report( );
+						break;
+
+					case 'E':
+						stack_median( );
 						break;
 
 					case 'X':

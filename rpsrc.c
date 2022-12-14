@@ -1,134 +1,4 @@
-#define _GNU_SOURCE
-
-#include <math.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <signal.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#define STACK_SIZE		262144
-#define MAX_FACT		21
-
-enum output_types
-{
-	OUTTYPE_DOUBLE = 0,
-	OUTTYPE_INT,
-	OUTTYPE_SCI
-};
-
-
-#define BROKEN( )		exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) )
-#define STATE( )		printf( "a = %f, b = %f\n", a, b )
-#define PLIM( _x, _m )	if( _x > _m ) exit( fprintf( stderr, "Internal value limit - max is %f, value %f\n", _m, _x ) )
-
-
-typedef struct stacker STACK;
-struct stacker
-{
-	long long int				size;
-	long long int				curr;
-	long long int				out;
-	double					*	vals;
-	long long int			*	fact;		// factorial record
-};
-
-STACK *make_stack( long long int max )
-{
-	STACK *s;
-
-	if( !max )
-		max = STACK_SIZE;
-
-	s = (STACK *) calloc( 1, sizeof( STACK ) );
-	s->size = max;
-	s->out  = OUTTYPE_DOUBLE;
-	s->vals = (double *) calloc( max, sizeof( double ) );
-	s->fact = (long long int *) calloc( MAX_FACT, sizeof( long long int ) );
-	return s;
-}
-
-
-void push( STACK *s, double v )
-{
-	if( s->curr < s->size )
-	{
-		s->vals[s->curr] = v;
-		++(s->curr);
-	}
-	else
-		fprintf( stderr, "Stack max size (%lld) reached.\n", s->size );
-}
-
-double _pop( STACK *s )
-{
-	double v = 0;
-
-	if( s->curr > 0 )
-	{
-		v = s->vals[s->curr - 1];
-		s->vals[s->curr - 1] = 0;
-		--(s->curr);
-	}
-	else
-		fprintf( stderr, "Nothing on the stack to pop :-(\n" );
-
-	return v;
-}
-
-void pop( STACK *s, double *a, double *b )
-{
-	if( b )
-		*b = _pop( s );
-
-	if( a )
-		*a  = _pop( s );
-}
-
-double peek( STACK *s, long long int idx )
-{
-	if( idx >= 0 && idx < s->curr )
-		return s->vals[idx];
-
-	return 0.0;
-}
-
-void flatten( STACK *s )
-{
-	if( s->curr > 0 )
-	{
-		memset( s->vals, 0, s->curr * sizeof( double ) );
-		s->curr = 0;
-	}
-}
-
-long long int empty( STACK *s )
-{
-	return ( s->curr == 0 ) ? 1 : 0;
-}
-
-long long int full( STACK *s )
-{
-	return ( s->curr < s->size ) ? 0 : 1;
-}
-
-long long int current( STACK *s )
-{
-	return s->curr;
-}
-
-
-void need( STACK *s, long long int count )
-{
-	if( s->curr < count )
-		BROKEN( );
-}
-
-
-
-long long int factorials[MAX_FACT];
+#include "rpcalc.h"
 
 void usage( void )
 {
@@ -195,7 +65,9 @@ Tt  (1)         Trigonometry - arc tangent of the argument\n\
  G  (2)         If the first number is greater push 1, else push 0\n\
  L  (2)         If the first number is lesser push 1, else push 0\n\
  =  (2)         If the two numbers are equal, push 1, else push 0\n\
- _  (1)         Converts 0 to 1, and non-zero to 0\n\
+ _  (1)         Converts 0 to 1, and non-zero to 0\n" );
+	// we hit the max literal string limit
+	printf( "\
 bn  (1) (i)     Bitwise NOT\n\
 ba  (2) (i)     Bitwise AND\n\
 bo  (2) (i)     Bitwise OR\n\
@@ -203,24 +75,20 @@ bx  (2) (i)     Bitwise XOR\n\
  ,  (0)         Separator for numbers together in one argument\n\
 cE              Push mathematical constant e (2.7818...)\n\
 cP              Push mathematical constant Pi (3.1416...)\n\
- I  (0)         Convert output to integer first\n\
+oZ  (0)         Display output in scientific (exponent) form\n\
+oI  (0)         Convert output to integer and display in decimal\n\
+oB  (0)         Convert output to integer and display in binary\n\
+oO  (0)         Convert output to integer and display in octal\n\
+oX  (0)         Convert output to integer and display in hexadecimal\n\
+oR  (0)         Output options without prefixes (ie bare hex, bin, oct)\n\
+ob  (0)         Output raw binary representation of the value\n\
+ P  (1)         Set the output precision (0-12)\n\
+iX  (0)         Disable hexadecimal input detection after this arg\n\
+iO  (0)         Disable octal input detection after this arg\n\
+iB  (0)         Disable binary input detection after this arg\n\
  ?  (0)         Print this help.\n\n" );
 }
 
-
-long long int factorial( STACK *s, long long int f )
-{
-	if( f < 2 )
-		return 1;
-
-	if( f >= MAX_FACT )
-		return -1;
-
-	if( !s->fact[f] )
-		s->fact[f] = f * factorial( s, f - 1 );
-
-	return s->fact[f];
-}
 
 // returns log
 double est_fact( long long int f )
@@ -241,7 +109,7 @@ long long int perms( STACK *s, long long int a, long long int b )
 	if( b > a )
 		return -1;
 
-	return factorial( s, a ) / factorial( s, a - b );
+	return getfact( s, (int) a ) / getfact( s, (int) (a - b) );
 }
 
 // returns log
@@ -258,7 +126,7 @@ long long int comb( STACK *s, long long int a, long long int b )
 	if( b > a )
 		return -1;
 
-	return perms( s, a, b ) / factorial( s, b );
+	return perms( s, a, b ) / getfact( s, (int) b );
 }
 
 // returns log
@@ -368,30 +236,6 @@ void stack_sd( STACK *s )
 }
 
 
-
-void report( STACK *s )
-{
-	long long int j;
-	double a;
-
-	pop( s, &a, NULL );
-
-	switch( s->out )
-	{
-		case OUTTYPE_INT:
-			j = (long long int) a;
-			printf( "%lld\n", j );
-			break;
-		case OUTTYPE_SCI:
-			printf( "%g\n", a );
-			break;
-		default:
-			printf( "%f\n", a );
-			break;
-	}
-}
-
-
 void handle_arg( STACK *s, char *arg )
 {
 	long long int j, k;
@@ -408,6 +252,89 @@ void handle_arg( STACK *s, char *arg )
 		switch( *p )
 		{
 			case '0':
+				// detect hex and octal
+				switch( *(p+1) )
+				{
+					// hex, be generous and allow X
+					case 'x':
+					case 'X':
+						// step over prefix
+						p++;
+						p++;
+						if( hasinput( s, INTYPE_HEX ) )
+						{
+							j = strtoull( p, &q, 16 );
+							p = q - 1;
+							push( s, (double) j );
+						}
+						else
+						{
+							a = strtod( p, &q );
+							p = q - 1;
+							push( s, a );
+						}
+						break;
+					// binary - allow 0b and 0B
+					case 'b':
+					case 'B':
+						// step over prefix
+						p++;
+						p++;
+						if( hasinput( s, INTYPE_BIN ) )
+						{
+							j = strtoull( p, &q, 2 );
+							p = q - 1;
+							push( s, (double) j );
+						}
+						else
+						{
+							a = strtod( p, &q );
+							p = q - 1;
+							push( s, a );
+						}
+						break;
+					// octal - all 0123 or 0o123 or 0O123
+					case 'o':
+					case 'O':
+						// step over prefix
+						p++;
+						p++;
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+						if( hasinput( s, INTYPE_OCT ) )
+						{
+							j = strtoull( p, &q, 8 );
+							p = q - 1;
+							push( s, (double) j );
+						}
+						else
+						{
+							a = strtod( p, &q );
+							p = q - 1;
+							push( s, a );
+						}
+						break;
+					// 8 and 9 are just regular numbers,
+					// so allow doubles, and handle decimals
+					case '8':
+					case '9':
+					case '.':
+						a = strtod( p, &q );
+						p = q - 1;
+						push( s, a );
+						break;
+					// else... it was input
+					default:
+						push( s, 0 );
+						break;
+				}
+				break;
 			case '1':
 			case '2':
 			case '3':
@@ -677,7 +604,7 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, NULL );
 						PLIM( a, 20.0 );
 						j = (long long int) a;
-						a = (double) factorial( s, j );
+						a = (double) getfact( s, (int) j );
 						push( s, a );
 						break;
 
@@ -747,7 +674,7 @@ void handle_arg( STACK *s, char *arg )
 						BROKEN( );
 				}
 
-				s->out = OUTTYPE_SCI;
+				setoutput( s, OUTTYPE_SCI );
 				break;
 
 			case 'S':
@@ -978,11 +905,76 @@ void handle_arg( STACK *s, char *arg )
 				break;
 
 			case 'I':
-				s->out = OUTTYPE_INT;
+				p++;
+				for( ; *p && !isspace( *p ); p++ )
+					switch( *p )
+					{
+						case 'O':
+							setinput( s, INTYPE_OCT, 0 );
+							break;
+
+						case 'X':
+							setinput( s, INTYPE_HEX, 0 );
+							break;
+
+						case 'B':
+							setinput( s, INTYPE_BIN, 0 );
+							break;
+
+						default:
+							BROKEN( );
+					}
+
+				// step back off the null
+				--p;
 				break;
 
-			case 'X':
-				s->out = OUTTYPE_SCI;
+			case 'o':
+				p++;
+				for( ; *p && !isspace( *p ); p++ )
+					switch( *p )
+					{
+						case 'I':
+							setoutput( s, OUTTYPE_INT );
+							break;
+
+						case 'Z':
+							setoutput( s, OUTTYPE_SCI );
+							break;
+
+						case 'X':
+							setoutput( s, OUTTYPE_HEX );
+							break;
+
+						case 'O':
+							setoutput( s, OUTTYPE_OCT );
+							break;
+
+						case 'B':
+							setoutput( s, OUTTYPE_BIN );
+							break;
+
+						case 'b':
+							setoutput( s, OUTTYPE_DBIN );
+							break;
+
+						case 'R':
+							setbare( s, 1 );
+							break;
+
+						default:
+							BROKEN( );
+					}
+
+				// step back off the null
+				--p;
+				break;
+
+			case 'P':
+				need( s, 1 );
+				pop( s, &a, NULL );
+				setprecision( s, (int) a );
+				break;
 
 			case ',':
 				// number separator
@@ -1005,7 +997,7 @@ int handle_stdin( STACK *s )
 	char *line;
 	size_t lsz;
 
-	lsz  = 8192;
+	lsz  = 262144;
 	line = (char *) malloc( lsz );
 
 	while( ( ret = getline( &line, &lsz, stdin ) ) != -1 )

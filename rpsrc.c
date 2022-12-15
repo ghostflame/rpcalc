@@ -72,21 +72,27 @@ bn  (1) (i)     Bitwise NOT\n\
 ba  (2) (i)     Bitwise AND\n\
 bo  (2) (i)     Bitwise OR\n\
 bx  (2) (i)     Bitwise XOR\n\
- ,  (0)         Separator for numbers together in one argument\n\
-cE              Push mathematical constant e (2.7818...)\n\
-cP              Push mathematical constant Pi (3.1416...)\n\
-oZ  (0)         Display output in scientific (exponent) form\n\
-oI  (0)         Convert output to integer and display in decimal\n\
-oB  (0)         Convert output to integer and display in binary\n\
-oO  (0)         Convert output to integer and display in octal\n\
-oX  (0)         Convert output to integer and display in hexadecimal\n\
-oR  (0)         Output options without prefixes (ie bare hex, bin, oct)\n\
-ob  (0)         Output raw binary representation of the value\n\
+ ,              Separator for numbers together in one argument\n\
+cE              Push mathematical constant: e (2.7818...)\n\
+cP              Push mathematical constant: Pi (3.1416...)\n\
+cG              Push mathematical constant: Phi (1.6180...)\n\
+cg              Push physical constant: gravitation (6.6e-11)\n\
+cc              Push physical constant: speed of light (2.99e8)\n\
+ch              Push physical constant: Planck constant (6.62e-34)\n\
+ce              Push physical constant: elementary charge (1.602e-19)\n\
+cm              Push physical constant: Avagadro's (6.022e23)\n\
+oZ              Display output in scientific (exponent) form\n\
+oI              Convert output to integer and display in decimal\n\
+oB              Convert output to integer and display in binary\n\
+oO              Convert output to integer and display in octal\n\
+oX              Convert output to integer and display in hexadecimal\n\
+oR              Output options without prefixes (ie bare hex, bin, oct)\n\
+ob              Output raw binary representation of the value\n\
  P  (1)         Set the output precision (0-12)\n\
-iX  (0)         Disable hexadecimal input detection after this arg\n\
-iO  (0)         Disable octal input detection after this arg\n\
-iB  (0)         Disable binary input detection after this arg\n\
- ?  (0)         Print this help.\n\n" );
+IX              Disable hexadecimal input detection after this arg\n\
+IO              Disable octal input detection after this arg\n\
+IB              Disable binary input detection after this arg\n\
+ ?              Print this help.\n\n" );
 }
 
 
@@ -537,6 +543,26 @@ void handle_arg( STACK *s, char *arg )
 
 					case 'P':
 						push( s, M_PI );
+						break;
+
+					case 'g':
+						push( s, RPCST_GRAV );
+						break;
+
+					case 'c':
+						push( s, RPCST_LIGHT );
+						break;
+
+					case 'h':
+						push( s, RPCST_PLANCK );
+						break;
+
+					case 'm':
+						push( s, RPCST_AVAGADRO );
+						break;
+
+					case 'e':
+						push( s, RPCST_CHARGE );
 						break;
 
 					default:

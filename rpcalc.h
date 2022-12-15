@@ -33,6 +33,13 @@ enum output_types
 
 #define OUTFLAG_PREF	0x0100		// leading 0x, 0, 0b
 
+// some constants
+#define RPCST_AVAGADRO	6.02214076e23
+#define RPCST_PLANCK	6.62607015e-34
+#define RPCST_LIGHT		299792458
+#define RPCST_GRAV		6.674301e-11
+#define RPCST_CHARGE	1.602176634e-19
+
 
 #define BROKEN( )		exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) )
 #define STATE( )		printf( "a = %f, b = %f\n", a, b )

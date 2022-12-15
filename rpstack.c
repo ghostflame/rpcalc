@@ -135,6 +135,7 @@ int _binstr( long long int val, char *dest, int len )
 		{
 			l = 63 - i; // record last bit, for length
 			dest[63 - i] = '1';
+			printf( "Setting dest[%d] to 1\n", 63 - i );
 		}
 		else
 			dest[63 - i] = '0';

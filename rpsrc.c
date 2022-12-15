@@ -13,7 +13,7 @@ operators are the number of arguments they consume.  In each case\n\
 the result is pushed back onto the stack.  When all arguments have\n\
 been handled, the top stack element is reported.\n\
 \n\
-All numeric arguments are treated as type double.\n\
+All numeric arguments are treated as type long double.\n\
 A (i) denotes integer conversion is applied before operations.\n\
 \n\
  <Numbers>      These are consumed and pushed onto the stack.\n\
@@ -92,14 +92,15 @@ ob              Output raw binary representation of the value\n\
 IX              Disable hexadecimal input detection after this arg\n\
 IO              Disable octal input detection after this arg\n\
 IB              Disable binary input detection after this arg\n\
+ %%              Wait for stdin even with arguments supplied\n\
  ?              Print this help.\n\n" );
 }
 
 
 // returns log
-double est_fact( long long int f )
+long double est_fact( long long int f )
 {
-	double ef = 0;
+	long double ef = 0;
 
 	while( f > 1 )
 	{
@@ -119,7 +120,7 @@ long long int perms( STACK *s, long long int a, long long int b )
 }
 
 // returns log
-double est_perms( long long int a, long long int b )
+long double est_perms( long long int a, long long int b )
 {
 	if( b > a )
 		return 0.0;
@@ -136,7 +137,7 @@ long long int comb( STACK *s, long long int a, long long int b )
 }
 
 // returns log
-double est_comb( long long int a, long long int b )
+long double est_comb( long long int a, long long int b )
 {
 	if( b > a )
 		return 0.0;
@@ -146,23 +147,23 @@ double est_comb( long long int a, long long int b )
 
 int stack_compare( const void *p1, const void *p2 )
 {
-	double d1 = *((double *) p1);
-	double d2 = *((double *) p2);
+	long double d1 = *((long double *) p1);
+	long double d2 = *((long double *) p2);
 
 	return ( d1 > d2 ) ? 1 : ( d1 < d2 ) ? -1 : 0;
 }
 
 void stack_median( STACK *s )
 {
-	double *tmpstack, val;
+	long double *tmpstack, val;
 	int c;
 
 	if( ( c = current( s ) ) == 0 )
 		return;
 
-	tmpstack = calloc( c, sizeof( double ) );
-	memcpy( tmpstack, s->vals, c * sizeof( double ) );
-	qsort( tmpstack, c, sizeof( double ), &stack_compare );
+	tmpstack = calloc( c, sizeof( long double ) );
+	memcpy( tmpstack, s->vals, c * sizeof( long double ) );
+	qsort( tmpstack, c, sizeof( long double ), &stack_compare );
 
 	val = tmpstack[c >> 1];
 	flatten( s );
@@ -174,12 +175,12 @@ void stack_median( STACK *s )
 
 void stack_unique( STACK *s )
 {
-	double a, *spare_stack;
+	long double a, *spare_stack;
 	long long int i, j = 0, c;
 
 	c = current( s );
 
-	spare_stack = (double *) calloc( c, sizeof( double ) );
+	spare_stack = (long double *) calloc( c, sizeof( long double ) );
 
 	while( c > 0 )
 	{
@@ -205,7 +206,7 @@ void stack_unique( STACK *s )
 
 void stack_sd( STACK *s )
 {
-	double m, q, a;
+	long double m, q, a;
 	long long int c, j;
 
 	m = 0;
@@ -218,7 +219,7 @@ void stack_sd( STACK *s )
 		m += peek( s, j );
 	}
 
-	m /= (double) c;
+	m /= (long double) c;
 	// m is now the mean
 	a = m;
 
@@ -231,7 +232,7 @@ void stack_sd( STACK *s )
 		a -= m;
 		q += a * a;
 	}
-	q /= (double) c;
+	q /= (long double) c;
 	q = sqrt( q );
 	// s is now the root mean square diff
 
@@ -244,8 +245,8 @@ void stack_sd( STACK *s )
 
 void handle_arg( STACK *s, char *arg )
 {
+	long double a, b, c;
 	long long int j, k;
-	double a, b, c;
 	char *p, *q;
 
 	for( p = arg; *p; p++ )
@@ -257,6 +258,9 @@ void handle_arg( STACK *s, char *arg )
 		// null is ignored
 		switch( *p )
 		{
+			case '\0':
+				break;
+
 			case '0':
 				// detect hex and octal
 				switch( *(p+1) )
@@ -271,11 +275,11 @@ void handle_arg( STACK *s, char *arg )
 						{
 							j = strtoull( p, &q, 16 );
 							p = q - 1;
-							push( s, (double) j );
+							push( s, (long double) j );
 						}
 						else
 						{
-							a = strtod( p, &q );
+							a = strtold( p, &q );
 							p = q - 1;
 							push( s, a );
 						}
@@ -290,11 +294,11 @@ void handle_arg( STACK *s, char *arg )
 						{
 							j = strtoull( p, &q, 2 );
 							p = q - 1;
-							push( s, (double) j );
+							push( s, (long double) j );
 						}
 						else
 						{
-							a = strtod( p, &q );
+							a = strtold( p, &q );
 							p = q - 1;
 							push( s, a );
 						}
@@ -317,21 +321,21 @@ void handle_arg( STACK *s, char *arg )
 						{
 							j = strtoull( p, &q, 8 );
 							p = q - 1;
-							push( s, (double) j );
+							push( s, (long double) j );
 						}
 						else
 						{
-							a = strtod( p, &q );
+							a = strtold( p, &q );
 							p = q - 1;
 							push( s, a );
 						}
 						break;
 					// 8 and 9 are just regular numbers,
-					// so allow doubles, and handle decimals
+					// so allow long doubles, and handle decimals
 					case '8':
 					case '9':
 					case '.':
-						a = strtod( p, &q );
+						a = strtold( p, &q );
 						p = q - 1;
 						push( s, a );
 						break;
@@ -350,7 +354,7 @@ void handle_arg( STACK *s, char *arg )
 			case '7':
 			case '8':
 			case '9':
-				a = strtod( p, &q );
+				a = strtold( p, &q );
 				p = q - 1;
 				push( s, a );
 				break;
@@ -365,7 +369,7 @@ void handle_arg( STACK *s, char *arg )
 			case '-':
 				if( *(p+1) >= '0' && *(p+1) <= '9' )
 				{
-					a = strtod( p, &q );
+					a = strtold( p, &q );
 					p = q - 1;
 					push( s, a );
 					break;
@@ -396,9 +400,9 @@ void handle_arg( STACK *s, char *arg )
 					case 'n':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						if( a == 0.0 )
+						if( a == 0.0L )
 							BROKEN( );
-						push( s, 1.0 / a );
+						push( s, 1.0L / a );
 						break;
 
 					default:
@@ -414,25 +418,25 @@ void handle_arg( STACK *s, char *arg )
 					case 's':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, sqrt( a ) );
+						push( s, sqrtl( a ) );
 						break;
 
 					case 'c':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, cbrt( a ) );
+						push( s, cbrtl( a ) );
 						break;
 
 					case 'd':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, round( a ) );
+						push( s, roundl( a ) );
 						break;
 
 					case 't':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, trunc( a ) );
+						push( s, truncl( a ) );
 						break;
 
 					default:
@@ -447,13 +451,13 @@ void handle_arg( STACK *s, char *arg )
 					case 'l':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, log( a ) );
+						push( s, logl( a ) );
 						break;
 
 					case 'e':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, exp( a ) );
+						push( s, expl( a ) );
 						break;
 
 					default:
@@ -468,19 +472,19 @@ void handle_arg( STACK *s, char *arg )
 					case 's':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, sin( a ) );
+						push( s, sinl( a ) );
 						break;
 
 					case 'c':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, cos( a ) );
+						push( s, cosl( a ) );
 						break;
 
 					case 't':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, tan( a ) );
+						push( s, tanl( a ) );
 						break;
 
 					default:
@@ -495,19 +499,19 @@ void handle_arg( STACK *s, char *arg )
 					case 's':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, asin( a ) );
+						push( s, asinl( a ) );
 						break;
 
 					case 'c':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, acos( a ) );
+						push( s, acosl( a ) );
 						break;
 
 					case 't':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						push( s, atan( a ) );
+						push( s, atanl( a ) );
 						break;
 
 					default:
@@ -518,19 +522,19 @@ void handle_arg( STACK *s, char *arg )
 			case 'R':
 				need( s, 1 );
 				pop( s, &a, NULL );
-				push( s, ( a * M_PI ) / 180.0 );
+				push( s, ( a * M_PIl ) / 180.0L );
 				break;
 
 			case 'D':
 				need( s, 1 );
 				pop( s, &a, NULL );
-				push( s, ( a * 180.0 ) / M_PI );
+				push( s, ( a * 180.0L ) / M_PIl );
 				break;
 
 			case 'a':
 				need( s, 1  );
 				pop( s, &a, NULL );
-				push( s, fabs( a ) );
+				push( s, fabsl( a ) );
 				break;
 
 			case 'c':
@@ -538,11 +542,11 @@ void handle_arg( STACK *s, char *arg )
 				switch( *p )
 				{
 					case 'E':
-						push( s, M_E );
+						push( s, M_El );
 						break;
 
 					case 'P':
-						push( s, M_PI );
+						push( s, M_PIl );
 						break;
 
 					case 'g':
@@ -573,7 +577,7 @@ void handle_arg( STACK *s, char *arg )
 			case '^':
 				need( s, 2 );
 				pop( s, &a, &b );
-				push( s, pow( a, b ) );
+				push( s, powl( a, b ) );
 				break;
 
 			case 's':
@@ -585,7 +589,7 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						j = (long long int) a;
 						j <<= (int) b;
-						push( s, (double) j );
+						push( s, (long double) j );
 						break;
 
 					case 'r':
@@ -593,7 +597,7 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						j = (long long int) a;
 						j >>= (int) b;
-						push( s, (double) j );
+						push( s, (long double) j );
 						break;
 
 					default:
@@ -606,7 +610,7 @@ void handle_arg( STACK *s, char *arg )
 				pop( s, &a, &b );
 				j = (long long int) a;
 				k = (long long int) b;
-				push( s, (double) ( j % k ) );
+				push( s, (long double) ( j % k ) );
 				break;
 
 			case 'M':
@@ -628,31 +632,31 @@ void handle_arg( STACK *s, char *arg )
 					case 'F':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						PLIM( a, 20.0 );
+						PLIM( a, LIM_FACT_I );
 						j = (long long int) a;
-						a = (double) getfact( s, (int) j );
+						a = (long double) getfact( s, (int) j );
 						push( s, a );
 						break;
 
 					case 'P':
 						need( s, 2 );
 						pop( s, &a, &b );
-						PLIM( a, 20.0 );
-						PLIM( b, 20.0 );
+						PLIM( a, LIM_FACT_I );
+						PLIM( b, LIM_FACT_I );
 						j = (long long int) a;
 						k = (long long int) b;
-						a = (double) perms( s, j, k );
+						a = (long double) perms( s, j, k );
 						push( s, a );
 						break;
 
 					case 'C':
 						need( s, 2 );
 						pop( s, &a, &b );
-						PLIM( a, 20.0 );
-						PLIM( b, 20.0 );
+						PLIM( a, LIM_FACT_I );
+						PLIM( b, LIM_FACT_I );
 						j = (long long int) a;
 						k = (long long int) b;
-						a = (double) comb( s, j, k );
+						a = (long double) comb( s, j, k );
 						push( s, a );
 						break;
 
@@ -668,32 +672,32 @@ void handle_arg( STACK *s, char *arg )
 					case 'F':
 						need( s, 1 );
 						pop( s, &a, NULL );
-						PLIM( a, 170.0 );
+						PLIM( a, LIM_FACT_E );
 						j = (long long int) a;
 						a = est_fact( j );
-						push( s, exp( a ) );
+						push( s, expl( a ) );
 						break;
 
 					case 'P':
 						need( s, 2 );
 						pop( s, &a, &b );
-						PLIM( a, 170.0 );
-						PLIM( b, 170.0 );
+						PLIM( a, LIM_FACT_E );
+						PLIM( b, LIM_FACT_E );
 						j = (long long int) a;
 						k = (long long int) b;
 						a = est_perms( j, k );
-						push( s, exp( a ) );
+						push( s, expl( a ) );
 						break;
 
 					case 'C':
 						need( s, 2 );
 						pop( s, &a, &b );
-						PLIM( a, 170.0 );
-						PLIM( b, 170.0 );
+						PLIM( a, LIM_FACT_E );
+						PLIM( b, LIM_FACT_E );
 						j = (long long int) a;
 						k = (long long int) b;
 						a = est_comb( j, k );
-						push( s, exp( a ) );
+						push( s, expl( a ) );
 						break;
 
 					default:
@@ -708,7 +712,7 @@ void handle_arg( STACK *s, char *arg )
 				switch( *p )
 				{
 					case 'C':
-						a = (double) current( s );
+						a = (long double) current( s );
 						flatten( s );
 						push( s, a );
 						break;
@@ -742,7 +746,7 @@ void handle_arg( STACK *s, char *arg )
 							pop( s, &b, NULL );
 							a += log( b );
 						}
-						b = a / ( (double) j );
+						b = a / ( (long double) j );
 						push( s, exp( b ) );
 						break;
 
@@ -755,7 +759,7 @@ void handle_arg( STACK *s, char *arg )
 							pop( s, &b, NULL );
 							a += b * b;
 						}
-						a = sqrt( a / (double) j );
+						a = sqrt( a / (long double) j );
 						push( s, a );
 						break;
 
@@ -768,7 +772,7 @@ void handle_arg( STACK *s, char *arg )
 							pop( s, &b, NULL );
 							a += b;
 						}
-						a /= (double) j;
+						a /= (long double) j;
 						push( s, a );
 						break;
 
@@ -848,7 +852,7 @@ void handle_arg( STACK *s, char *arg )
 					case 'n':
 						need( s, 1 );
 						pop( s, &b, NULL );
-						a = (double) ~((int) b);
+						a = (long double) ~((int) b);
 						push( s, a );
 						break;
 
@@ -857,7 +861,7 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						j = (int) a;
 						k = (int) b;
-						a = (double) ( j & k );
+						a = (long double) ( j & k );
 						push( s, a );
 						break;
 
@@ -866,7 +870,7 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						j = (int) a;
 						k = (int) b;
-						a = (double) ( j | k );
+						a = (long double) ( j | k );
 						push( s, a );
 						break;
 
@@ -875,7 +879,7 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						j = (int) a;
 						k = (int) b;
-						a = (double) ( j ^ k );
+						a = (long double) ( j ^ k );
 						push( s, a );
 						break;
 
@@ -1006,9 +1010,18 @@ void handle_arg( STACK *s, char *arg )
 				// number separator
 				break;
 
+			case '%':
+				// stdin, despite commandline args
+				setinput( s, INTYPE_TERM, 1 );
+				break;
+
 			case '?':
 				usage( );
 				exit( 0 );
+				break;
+
+			default:
+				BROKEN( );
 				break;
 		}
 	}
@@ -1068,17 +1081,21 @@ void alarm_handler( int sig )
 int main( int ac, char **av )
 {
 	STACK *s;
-	int i;
+	int i, t;
 
 	signal( SIGALRM, &alarm_handler );
 
 	s = make_stack( 0 );
 
+	// are we a terminal?
+	t = isatty( fileno( stdin ) );
+
 	// no args? Let's look at stdin
 	if( ac == 1 )
 	{
 		// don't hang
-		alarm( 3 );
+		if( !t )
+			alarm( 3 );
 
 		if( handle_stdin( s ) != 0 )
 		{
@@ -1090,6 +1107,11 @@ int main( int ac, char **av )
 	{
 		for( i = 1; i < ac; i++ )
 			handle_arg( s, av[i] );
+
+		// allow stdin even with args from a pipe
+		// permits echo x y z | rpcalc oX
+		if( t && hasinput( s, INTYPE_TERM ) )
+			handle_stdin( s );
 	}
 
 	report( s );

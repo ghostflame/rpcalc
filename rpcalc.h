@@ -11,6 +11,8 @@
 
 #define STACK_SIZE		65536
 #define MAX_FACT		21
+#define LIM_FACT_I		20.0L
+#define LIM_FACT_E		470.0L
 #define PRECISION		6
 
 enum output_types
@@ -29,27 +31,28 @@ enum output_types
 #define INTYPE_OCT		0x0001
 #define INTYPE_HEX		0x0002
 #define INTYPE_BIN		0x0004
+#define INTYPE_TERM		0x0010
 #define INTYPE_MASK		0x00ff
 
 #define OUTFLAG_PREF	0x0100		// leading 0x, 0, 0b
 
 // some constants
-#define RPCST_AVAGADRO	6.02214076e23
-#define RPCST_PLANCK	6.62607015e-34
-#define RPCST_LIGHT		299792458
-#define RPCST_GRAV		6.674301e-11
-#define RPCST_CHARGE	1.602176634e-19
+#define RPCST_AVAGADRO	6.02214076e23L
+#define RPCST_PLANCK	6.62607015e-34L
+#define RPCST_LIGHT		299792458L
+#define RPCST_GRAV		6.674301e-11L
+#define RPCST_CHARGE	1.602176634e-19L
 
 
 #define BROKEN( )		exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) )
-#define STATE( )		printf( "a = %f, b = %f\n", a, b )
-#define PLIM( _x, _m )	if( _x > _m ) exit( fprintf( stderr, "Internal value limit - max is %f, value %f\n", _m, _x ) )
+#define STATE( )		printf( "a = %lf, b = %lf\n", a, b )
+#define PLIM( _x, _m )	if( _x > _m ) exit( fprintf( stderr, "Internal value limit - max is %Lf, value %Lf\n", _m, _x ) )
 
 // stack structure
 typedef struct stacker STACK;
 struct stacker
 {
-	double					*	vals;
+	long double				*	vals;
 	long long int			*	fact;		// factorial record
 	int							size;
 	int							curr;
@@ -60,10 +63,10 @@ struct stacker
 
 // stack interface
 STACK *make_stack( int max );
-void push( STACK *s, double v );
-void pop( STACK *s, double *a, double *b );
+void push( STACK *s, long double v );
+void pop( STACK *s, long double *a, long double *b );
 long long int getfact( STACK *s, int which );
-double peek( STACK *s, int idx );
+long double peek( STACK *s, int idx );
 void flatten( STACK *s );
 int empty( STACK *s );
 int full( STACK *s );

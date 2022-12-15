@@ -13,14 +13,14 @@ STACK *make_stack( int max )
 	s->out   = OUTTYPE_DOUBLE;
 	s->flags = INTYPE_HEX|INTYPE_OCT|INTYPE_BIN|OUTFLAG_PREF;
 	s->prec  = PRECISION;
-	s->vals  = (double *) calloc( max, sizeof( double ) );
+	s->vals  = (long double *) calloc( max, sizeof( long double ) );
 	s->fact  = (long long int *) calloc( 1 + MAX_FACT, sizeof( long long int ) );
 
 	return s;
 }
 
 
-void push( STACK *s, double v )
+void push( STACK *s, long double v )
 {
 	if( s->curr < s->size )
 	{
@@ -31,9 +31,9 @@ void push( STACK *s, double v )
 		fprintf( stderr, "Stack max size (%d) reached.\n", s->size );
 }
 
-double _pop( STACK *s )
+long double _pop( STACK *s )
 {
-	double v = 0;
+	long double v = 0;
 
 	if( s->curr > 0 )
 	{
@@ -67,7 +67,7 @@ long long int getfact( STACK *s, int which )
 	return -1;
 }
 
-void pop( STACK *s, double *a, double *b )
+void pop( STACK *s, long double *a, long double *b )
 {
 	if( b )
 		*b = _pop( s );
@@ -76,7 +76,7 @@ void pop( STACK *s, double *a, double *b )
 		*a  = _pop( s );
 }
 
-double peek( STACK *s, int idx )
+long double peek( STACK *s, int idx )
 {
 	if( idx >= 0 && idx < s->curr )
 		return s->vals[idx];
@@ -88,7 +88,7 @@ void flatten( STACK *s )
 {
 	if( s->curr > 0 )
 	{
-		memset( s->vals, 0, s->curr * sizeof( double ) );
+		memset( s->vals, 0, s->curr * sizeof( long double ) );
 		s->curr = 0;
 	}
 }
@@ -135,7 +135,6 @@ int _binstr( long long int val, char *dest, int len )
 		{
 			l = 63 - i; // record last bit, for length
 			dest[63 - i] = '1';
-			printf( "Setting dest[%d] to 1\n", 63 - i );
 		}
 		else
 			dest[63 - i] = '0';
@@ -146,22 +145,10 @@ int _binstr( long long int val, char *dest, int len )
 
 void setinput( STACK *s, int flags, int apply )
 {
-	char binbuf[72];
-	int l;
-
-	l = _binstr( (long long int) flags, binbuf, 72 );
-	printf( "Args:  0b%s  %d\n", binbuf + l, apply );
-
-	l = _binstr( (long long int) s->flags, binbuf, 72 );
-	printf( "Flags was: 0b%s\n", binbuf + l );
-
 	if( apply )
 		s->flags |= flags & INTYPE_MASK;
 	else
 		s->flags &= ~flags & INTYPE_MASK;
-
-	l = _binstr( (long long int) s->flags, binbuf, 72 );
-	printf( "Flags now: 0b%s\n", binbuf + l );
 }
 
 int hasinput( STACK *s, int type )
@@ -179,19 +166,19 @@ void setbare( STACK *s, int apply )
 
 void setprecision( STACK *s, int num )
 {
-	if( num >= 0 && num <= 12 )
+	if( num >= 0 && num <= 24 )
 		s->prec = num;
 }
 
 
 void report( STACK *s )
 {
-	char prefbuf[4], fmtbuf[16], binbuf[72];
+	char prefbuf[4] = {0};
+	char fmtbuf[16] = {0};
+	char binbuf[136] = {0};
 	long long int j, *lp;
-	double a;
+	long double a;
 	int l;
-
-	memset( prefbuf, 0, 4 );
 
 	pop( s, &a, NULL );
 	j = (long long int) a;
@@ -229,7 +216,7 @@ void report( STACK *s )
 			else
 			{
 				// glibc is no help
-				l = _binstr( j, binbuf, 72 );
+				l = _binstr( j, binbuf, 136 );
 
 				if( s->flags & OUTFLAG_PREF )
 				{
@@ -241,7 +228,7 @@ void report( STACK *s )
 			break;
 
 		case OUTTYPE_SCI:
-			snprintf( fmtbuf, 16, "%%.%dg\n", s->prec );
+			snprintf( fmtbuf, 16, "%%.%dLg\n", s->prec );
 			printf( fmtbuf, a );
 			break;
 
@@ -258,7 +245,7 @@ void report( STACK *s )
 			break;
 
 		default:
-			snprintf( fmtbuf, 16, "%%.%df\n", s->prec );
+			snprintf( fmtbuf, 16, "%%.%dLf\n", s->prec );
 			printf( fmtbuf, a );
 			break;
 	}

@@ -73,6 +73,7 @@ ba  (2) (i)     Bitwise AND\n\
 bo  (2) (i)     Bitwise OR\n\
 bx  (2) (i)     Bitwise XOR\n\
  ,              Separator for numbers together in one argument\n\
+fR              Push random floating point number [0, 1) (uses drand48)\n\
 cE              Push mathematical constant: e (2.7818...)\n\
 cP              Push mathematical constant: Pi (3.1416...)\n\
 cG              Push mathematical constant: Phi (1.6180...)\n\
@@ -94,6 +95,12 @@ IO              Disable octal input detection after this arg\n\
 IB              Disable binary input detection after this arg\n\
  %%              Wait for stdin even with arguments supplied\n\
  ?              Print this help.\n\n" );
+}
+
+
+long double get_random_ld( void )
+{
+	return (long double) drand48( );
 }
 
 
@@ -845,6 +852,22 @@ void handle_arg( STACK *s, char *arg )
 				push( s, a );
 				break;
 
+			// various functions
+			case 'f':
+				p++;
+				switch( *p )
+				{
+					// random long double 0 <= ld < 1
+					case 'R':
+						a = get_random_ld( );
+						push( s, a );
+						break;
+
+					default:
+						BROKEN();
+				}
+				break;
+
 			case 'b':
 				p++;
 				switch( *p )
@@ -1080,8 +1103,14 @@ void alarm_handler( int sig )
 
 int main( int ac, char **av )
 {
+	struct timespec ts;
 	STACK *s;
 	int i, t;
+
+	// grab the nsec from the raw clock
+	clock_gettime( CLOCK_MONOTONIC_RAW, &ts );
+	// seed our random number generator
+	srand48( (long) ts.tv_nsec );
 
 	signal( SIGALRM, &alarm_handler );
 

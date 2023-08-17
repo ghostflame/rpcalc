@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 
 #include <math.h>
+#include <time.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <signal.h>

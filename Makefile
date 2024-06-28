@@ -3,7 +3,7 @@ CC     = /usr/bin/gcc -std=c11 $(WFLAGS)
 WFLAGS = -Wall -Wshadow -Wpedantic -Wextra -Wno-unused-parameter -Wno-implicit-fallthrough
 CFLAGS = -O3 -I.
 
-FILES  = rpsrc rpstack
+FILES  = rpsrc rpargs rpstack
 OFILES = $(FILES:%=%.o)
 BIN    = rpcalc
 

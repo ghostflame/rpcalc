@@ -44,6 +44,8 @@ enum output_types
 #define RPCST_GRAV		6.674301e-11L
 #define RPCST_CHARGE	1.602176634e-19L
 
+#define SQRT_FIVE		2.23606797749978969640
+
 
 #define BROKEN( )		exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) )
 #define STATE( )		printf( "a = %lf, b = %lf\n", a, b )
@@ -79,3 +81,22 @@ void setbare( STACK *s, int apply );
 void setprecision( STACK *s, int num );
 int hasinput( STACK *s, int type );
 void report( STACK *s );
+
+// args file
+void usage( void );
+void handle_arg( STACK *s, char *arg );
+
+// handler functions
+long double get_random_ld( void );
+long double est_fact( long long int f );
+long long int perms( STACK *s, long long int a, long long int b );
+long double est_perms( long long int a, long long int b );
+long long int comb( STACK *s, long long int a, long long int b );
+long double est_comb( long long int a, long long int b );
+double fibonnaci( long long int a );
+int stack_compare( const void *p1, const void *p2 );
+void stack_median( STACK *s );
+void stack_unique( STACK *s );
+void stack_lcm( STACK *s );
+void stack_gcd( STACK *s );
+void stack_sd( STACK *s );

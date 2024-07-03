@@ -108,6 +108,36 @@ int current( STACK *s )
 	return s->curr;
 }
 
+void set_mem( STACK *s, int offset, long double a )
+{
+	int bits;
+
+	if( offset >= 0 && offset < 10 )
+	{
+		bits = 0x1 << offset;
+		s->mem[offset] = a;
+		s->membits |= bits;
+	}
+}
+
+int get_mem( STACK *s, int offset, long double *a )
+{
+	int bits;
+
+	if( offset >= 0 && offset < 10 )
+	{
+		bits = 0x1 << offset;
+		if( s->membits & bits )
+		{
+			*a = s->mem[offset];
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+
 void need( STACK *s, int count )
 {
 	if( s->curr < count )
@@ -170,6 +200,14 @@ void setprecision( STACK *s, int num )
 		s->prec = num;
 }
 
+
+void dumpstack( STACK *s )
+{
+	int i;
+
+	for( i = 0; i < s->curr; i++ )
+		printf( " %06d   %Lf\n", i, s->vals[i] );
+}
 
 void report( STACK *s )
 {

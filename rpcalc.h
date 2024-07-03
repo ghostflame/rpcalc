@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define STACK_SIZE		65536
+#define STACK_SIZE		262144
 #define MAX_FACT		21
 #define LIM_FACT_I		20.0L
 #define LIM_FACT_E		470.0L
@@ -57,6 +57,8 @@ struct stacker
 {
 	long double				*	vals;
 	long long int			*	fact;		// factorial record
+	long double					mem[10];	// memory section
+	int							membits;	// only lowest 10 bits matter
 	int							size;
 	int							curr;
 	int							out;		// single type
@@ -71,9 +73,12 @@ void pop( STACK *s, long double *a, long double *b );
 long long int getfact( STACK *s, int which );
 long double peek( STACK *s, int idx );
 void flatten( STACK *s );
+void dumpstack( STACK *s );
 int empty( STACK *s );
 int full( STACK *s );
 int current( STACK *s );
+void set_mem( STACK *s, int offset, long double a );
+int get_mem( STACK *s, int offset, long double *a );
 void need( STACK *s, int count );
 void setoutput( STACK *s, int type );
 void setinput( STACK *s, int flags, int apply );
@@ -93,7 +98,8 @@ long long int perms( STACK *s, long long int a, long long int b );
 long double est_perms( long long int a, long long int b );
 long long int comb( STACK *s, long long int a, long long int b );
 long double est_comb( long long int a, long long int b );
-double fibonnaci( long long int a );
+long double nth_root( long double a, long double b );
+long double fibonnaci( long long int a );
 int stack_compare( const void *p1, const void *p2 );
 void stack_median( STACK *s );
 void stack_unique( STACK *s );

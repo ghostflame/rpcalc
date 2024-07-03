@@ -56,19 +56,34 @@ long double est_comb( long long int a, long long int b )
 	return est_perms( a, b ) - est_fact( b );
 }
 
-double fibonnaci( long long int a )
+long double fibonnaci( long long int a )
 {
-	double b, c, d;
+	long double b, c, d;
 
 	if( a < 1 )
 		return 0;
 
 	// values needed for fib calc
-	b = (double) a;
+	b = (long double) a;
 	c = ( 1.0 + SQRT_FIVE ) / 2.0;
 	d = 1 - c;
 
 	return ( pow( c, b ) - pow( d, b ) ) / SQRT_FIVE;
+}
+
+long double nth_root( long double a, long double b )
+{
+	long long int c = (long long int) b;
+	long double d, e;
+
+	if( c < 1 )
+		return 0;
+
+	// now that we've converted that to int, and it's safe
+	d = (long double) c;
+	e = log( a );
+
+	return exp( e / d );
 }
 
 int stack_compare( const void *p1, const void *p2 )

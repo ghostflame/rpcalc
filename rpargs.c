@@ -13,6 +13,8 @@ operators are the number of arguments they consume.  In each case\n\
 the result is pushed back onto the stack.  When all arguments have\n\
 been handled, the top stack element is reported.\n\
 \n\
+Maximum stack size is %d.\n\
+\n\
 All numeric arguments are treated as type long double.\n\
 A (i) denotes integer conversion is applied before operations.\n\
 \n\
@@ -23,6 +25,7 @@ A (i) denotes integer conversion is applied before operations.\n\
  /  (2)         Divide the first number by the second number\n\
 rs  (1)         The square root of the argument\n\
 rc  (1)         The cube root of the argument\n\
+rn  (2) (i)     The n'th (second arg) root of the first argument\n\
 nl  (1)         The natural log of the argument\n\
 ne  (1)         The exponent of the argument\n\
 in  (1)         The inverse of the argument 1/X\n\
@@ -53,6 +56,8 @@ SX  (stack)     Unique-ify the stack (eliminate duplicates)\n\
 SC  (stack)     Count the numbers on the stack\n\
 Sg  (stack)     The greatest common divisor of the stack\n\
 Sl  (stack)     The least common multiple of the stack\n\
+y0-9 (1)        Store top of stack in non-stack memory\n\
+Y0-9            Retrieve non-stack memory element and push to the stack\n\
 ts  (1)         Trigonometry - sine of the argument\n\
 tc  (1)         Trigonometry - cosine of the argument\n\
 tt  (1)         Trigonometry - tangent of the argument\n\
@@ -68,7 +73,7 @@ Tt  (1)         Trigonometry - arc tangent of the argument\n\
  G  (2)         If the first number is greater push 1, else push 0\n\
  L  (2)         If the first number is lesser push 1, else push 0\n\
  =  (2)         If the two numbers are equal, push 1, else push 0\n\
- _  (1)         Converts 0 to 1, and non-zero to 0\n" );
+ _  (1)         Converts 0 to 1, and non-zero to 0\n", STACK_SIZE );
 	// we hit the max literal string limit
 	printf( "\
 bn  (1) (i)     Bitwise NOT\n\
@@ -106,6 +111,7 @@ void handle_arg( STACK *s, char *arg )
 	long double a, b, c;
 	long long int j, k;
 	char *p, *q;
+	int st_off;
 
 	for( p = arg; *p; p++ )
 	{
@@ -283,6 +289,12 @@ void handle_arg( STACK *s, char *arg )
 						need( s, 1 );
 						pop( s, &a, NULL );
 						push( s, cbrtl( a ) );
+						break;
+
+					case 'n':
+						need( s, 2 );
+						pop( s, &a, &b );
+						push( s, nth_root( a, b ) );
 						break;
 
 					case 'd':
@@ -481,6 +493,58 @@ void handle_arg( STACK *s, char *arg )
 				else
 					a = 1.0;
 				push( s, a );
+				break;
+
+			case 'Y':
+				p++;
+				switch( *p )
+				{
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+					case '8':
+					case '9':
+						st_off = *p - '0';
+						if( get_mem( s, st_off, &a ) != 0 )
+						{
+							BROKEN( );
+						}
+						push( s, a );
+						break;
+
+					default:
+						BROKEN( );
+				}
+				break;
+
+			case 'y':
+				p++;
+				switch( *p )
+				{
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+					case '8':
+					case '9':
+						st_off = *p - '0';
+						need( s, 1 );
+						pop( s, &a, NULL );
+						set_mem( s, st_off, a );
+						break;
+
+					default:
+						BROKEN( );
+				}
 				break;
 
 			case 'F':

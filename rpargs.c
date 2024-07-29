@@ -473,6 +473,10 @@ void handle_arg( STACK *s, char *arg )
 						push( s, M_PIl );
 						break;
 
+					case 'G':
+						push( s, RPCST_PHI );
+						break;
+
 					case 'g':
 						push( s, RPCST_GRAV );
 						break;

@@ -60,6 +60,7 @@ enum output_types
 #define OUTFLAG_PREF	0x0100		// leading 0x, 0, 0b
 
 // some constants
+#define RPCST_PHI		1.61803398874989484820L
 #define RPCST_AVAGADRO	6.02214076e23L
 #define RPCST_PLANCK	6.62607015e-34L
 #define RPCST_LIGHT		299792458L

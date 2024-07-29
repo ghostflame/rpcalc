@@ -23,11 +23,15 @@ A (i) denotes integer conversion is applied before operations.\n\
  -  (2)         Subtract the second number from the first\n\
  * or x  (2)    Multiply the numbers together (note, shells often eat *)\n\
  /  (2)         Divide the first number by the second number\n\
+ %% (2) (i)     First argument modulo the second argument\n\
 rs  (1)         The square root of the argument\n\
 rc  (1)         The cube root of the argument\n\
 rn  (2) (i)     The n'th (second arg) root of the first argument\n\
 nl  (1)         The natural log of the argument\n\
-ne  (1)         The exponent of the argument\n\
+ne  (1)         The exponent of the argument (equiv to cE <x> ^)\n\
+nL  (1)         Log with base 10 of the argument\n\
+nE  (1)         Exponent base 10 of the argument\n\
+nY  (2)         Log of arbitrary base (second argument)\n\
 in  (1)         The inverse of the argument 1/X\n\
 rd  (1)         Round the argument to the nearest integer\n\
 rt  (1)         Round (truncate downwards) the argument\n\
@@ -63,7 +67,9 @@ tc  (1)         Trigonometry - cosine of the argument\n\
 tt  (1)         Trigonometry - tangent of the argument\n\
 Ts  (1)         Trigonometry - arc sine of the argument\n\
 Tc  (1)         Trigonometry - arc cosine of the argument\n\
-Tt  (1)         Trigonometry - arc tangent of the argument\n\
+Tt  (1)         Trigonometry - arc tangent of the argument\n", STACK_SIZE );
+	// we hit the max literal string limit
+	printf( "\
  R  (1)         Convert argument from degrees to radians\n\
  D  (1)         Convert argument from radians to degrees\n\
  g  (2)         Pushes the greater of the two arguments\n\
@@ -73,9 +79,7 @@ Tt  (1)         Trigonometry - arc tangent of the argument\n\
  G  (2)         If the first number is greater push 1, else push 0\n\
  L  (2)         If the first number is lesser push 1, else push 0\n\
  =  (2)         If the two numbers are equal, push 1, else push 0\n\
- _  (1)         Converts 0 to 1, and non-zero to 0\n", STACK_SIZE );
-	// we hit the max literal string limit
-	printf( "\
+ _  (1)         Converts 0 to 1, and non-zero to 0\n\
 bn  (1) (i)     Bitwise NOT\n\
 ba  (2) (i)     Bitwise AND\n\
 bo  (2) (i)     Bitwise OR\n\
@@ -101,7 +105,7 @@ ob              Output raw binary representation of the value\n\
 IX              Disable hexadecimal input detection after this arg\n\
 IO              Disable octal input detection after this arg\n\
 IB              Disable binary input detection after this arg\n\
- %%              Wait for stdin even with arguments supplied\n\
+ .              Wait for stdin even with arguments supplied\n\
  ?              Print this help.\n\n" );
 }
 
@@ -257,6 +261,14 @@ void handle_arg( STACK *s, char *arg )
 				push( s, a / b );
 				break;
 
+			case '%':
+				need( s, 2 );
+				pop( s, &a, &b );
+				j = (long long int) a;
+				k = (long long int) b;
+				push( s, (long double) ( j % k ) );
+				break;
+
 			case 'i':
 				p++;
 				switch( *p )
@@ -328,6 +340,27 @@ void handle_arg( STACK *s, char *arg )
 						need( s, 1 );
 						pop( s, &a, NULL );
 						push( s, expl( a ) );
+						break;
+
+					case 'L':
+						need( s, 1 );
+						pop( s, &a, NULL );
+						push( s, log10l( a ) );
+						break;
+
+					case 'E':
+						need( s, 1 );
+						pop( s, &a, NULL );
+						push( s, exp10l( a ) );
+						break;
+
+					case 'Y':
+						need( s, 2 );
+						pop( s, &a, &b );
+						if( b > 1 )
+							push( s, logl( a ) / logl( b ) );
+						else
+							BROKEN( );
 						break;
 
 					default:
@@ -965,7 +998,7 @@ void handle_arg( STACK *s, char *arg )
 				// number separator
 				break;
 
-			case '%':
+			case '.':
 				// stdin, despite commandline args
 				setinput( s, INTYPE_TERM, 1 );
 				break;

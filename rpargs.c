@@ -122,7 +122,7 @@ oO              Convert output to integer and display in octal\n\
 oX              Convert output to integer and display in hexadecimal\n\
 oR              Output options without prefixes (ie bare hex, bin, oct)\n\
 ob              Output raw binary representation of the value\n\
- P  (1)         Set the output precision (0-12)\n\
+ P  (1)         Set the output precision (0-24)\n\
 IX              Disable hexadecimal input detection after this arg\n\
 IO              Disable octal input detection after this arg\n\
 IB              Disable binary input detection after this arg\n\

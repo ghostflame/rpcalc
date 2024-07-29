@@ -44,7 +44,7 @@ A (i) denotes integer conversion is applied before operations.\n\
  -  (2)         Subtract the second number from the first\n\
  * or x  (2)    Multiply the numbers together (note, shells often eat *)\n\
  /  (2)         Divide the first number by the second number\n\
- %% (2) (i)     First argument modulo the second argument\n\
+ %%  (2) (i)     First argument modulo the second argument\n\
 rs  (1)         The square root of the argument\n\
 rc  (1)         The cube root of the argument\n\
 rn  (2) (i)     The n'th (second arg) root of the first argument\n\

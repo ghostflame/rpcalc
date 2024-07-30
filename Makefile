@@ -7,7 +7,7 @@ FILES  = rpsrc rpargs rpstack
 OFILES = $(FILES:%=%.o)
 BIN    = rpcalc
 
-all:     $(BIN)
+all:     $(BIN) doc
 
 
 $(BIN): $(OFILES)
@@ -18,7 +18,12 @@ addtobin: $(BIN)  ## Installs to ~/bin, not configurable yet.
 	cp $(BIN) ~/bin/
 
 clean:  ## CLeans all build files.
-	rm -f $(BIN) *.o
+	rm -f $(BIN) *.o doc/*.info
+
+doc:
+	cd doc && makeinfo rpcalc.texi
+
+.PHONY: doc
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

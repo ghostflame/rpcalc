@@ -1,3 +1,4 @@
 *.o
 rpcalc
 testfile
+doc/*.info

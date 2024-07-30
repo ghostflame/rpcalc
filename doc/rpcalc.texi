@@ -1,0 +1,308 @@
+\input texinfo
+@setfilename rpcalc.info
+@documentencoding UTF-8
+@settitle Rpcalc
+
+@copying
+Copyright @copyright{} 2024 John Denholm
+@end copying
+
+@titlepage
+@end titlepage
+
+@contents
+@node Top
+@top Rpcalc Command-line Calculator
+
+This document describes the rpcalc command-line calculator, a simple reverse-polish
+notation calculator.
+
+@menu
+* Introduction::            A short summary of the program
+* Arguments::               Argument handling and numeric arguments
+* Operators::               Mathematical operators
+* Memory::                  Internal memory slots
+* Precision::               Output precision and max calculations
+* Output::                  Control over output format
+
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+Rpcalc is a reverse-polish calculator, conforming to @uref{https://en.wikipedia.org/wiki/Reverse_Polish_notation}.  It has a large array of operators, most of which are short
+alphabetic sequences to avoid too much shell nonsense.
+
+Eschewing switches, all arguments are processed as computational (so ? and @ are included
+to evoke the help text).
+
+Arguments are stored on a stack for processing, and operator results are pushed back
+onto the stack.  The stack storage type is long double.
+
+At the end of processing, the top argument on the stack is presented to stdout.
+
+Rpcalc source lives at @uref{https://github.com/ghostflame/rpcalc}.
+
+@node Arguments
+@chapter Arguments
+
+@section Handling Order
+
+Rpcalc handles arguments in one of two ways, either as command-line parameters or from
+stdin.  Processing of the two is more or less identical.
+
+Arguments are pushed and popped from an internal stack, with a max of 128K arguments.
+
+Command line arguments are processed one at a time, first, and a give CLI argument may
+be a complex string containing multiple rpcalc arguments, eg rpcalc "3 2 +".  Operators
+dump their output onto the stack, allowing chaining of calculations, eg rpcalc 3 2 + 1 -
+
+The '.' operator can be used to indicate that once command-line arguments are parsed,
+rpcalc should then listen for stdin arguments.  Without this, if rpcalc detects that
+stdin is a tty, then it will finish once all command-line arguments are handled.
+
+
+@section Numeric Arguments
+
+Numeric arguments are interpreted as either decimal, octal, binary or hexadecimal,
+depending on the first few characters.  A leading '-' results in negative numbers.
+
+Decimal numbers are processed with @emph{strtold}, which results in regular
+decimal and scientific notation being accepted, eg 1580 or 1.58E3.
+
+Operators may be placed directly after numeric arguments without a space, as numeric
+processing ends with the last detected valid character.  Therefore the inputs "2 1 -"
+and "2 1-" are the same.
+
+@subsection Type Detection
+
+@table @var
+@item 0<b or B>[0-1]+
+Binary assumed.  Processed with @emph{strtroull} with base 2.
+@item 0<optional o or O>[0-7]
+Octal assumed.  Processed with @emph{strtoull} with base 8.
+@item 0<x or X>[0-9a-fA-F]+
+Hexadecimal assumed.  Processed with @emph{strtroull} with base 16.
+@end table
+
+Note: presenting octal (leading 0) but followed by an 8 or 9 will cause decimal
+processing.
+
+@subsection Deactivating Types
+
+Three input control operators exist to disable individual numeric formats.
+
+@table @var
+@item IX
+Disable hexadecimal input after this operator.  Assume decimal for leading 0x.
+@item IO
+Disable octal input after this operator.  Assume decimal for leading 0 or 0o.
+@item IB
+Diable binary input after this operator.  Assume decimal for leading 0b.
+@end table
+
+
+
+
+@node Operators
+
+@subsection Arithmetic Operators
+
+All of the arithmetic operators consume one or more arguments and push a result back to the
+stack.
+
+@multitable {Opr} {Args} {Intg} {Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item +  @tab 2 @tab   @tab Adds last 2 numbers together
+@item -  @tab 2 @tab   @tab Subtracts second number from first number
+@item x  @tab 2 @tab   @tab (or *) Multiplies last 2 numbers (shells may consume *)
+@item /  @tab 2 @tab   @tab Divides first number by second number
+@item %  @tab 2 @tab y @tab First number modulo the second number
+@item rs @tab 1 @tab   @tab Square root of the number
+@item rc @tab 1 @tab   @tab Cube root of the number
+@item rn @tab 2 @tab y @tab The n'th root (second number - integer) of the first number
+@item nl @tab 1 @tab   @tab Natural log of the number
+@item ne @tab 1 @tab   @tab Exponent of the number (equivalent to cE <x> ^)
+@item nL @tab 1 @tab   @tab Log (base 10) of the number
+@item nE @tab 1 @tab   @tab Exponent (base 10) of the number
+@item nY @tab 2 @tab   @tab Log (base is second number) of the first number
+@item in @tab 1 @tab   @tab Inverse of the number (1/x)
+@item rd @tab 1 @tab   @tab Round the number to the nearest integer
+@item rt @tab 1 @tab   @tab Round (truncate downwards) the number
+@item ^  @tab 2 @tab   @tab Raise first number to the poower of second number
+@item a  @tab 1 @tab   @tab Absolute value of the number
+@item NF @tab 1 @tab y @tab Factorial of the number
+@item NP @tab 2 @tab y @tab Permutations of second number choices from first number
+@item NC @tab 2 @tab y @tab Combinations of second number choices from first number
+@item F  @tab 1 @tab y @tab The n'th Fibonacci sequence number
+@item EF @tab 1 @tab y @tab Estimate the factorial of the number (for larger numbers)
+@item EP @tab 2 @tab y @tab Estimate permutations (as above) (for larger numbers)
+@item EC @tab 2 @tab y @tab Estimate combinations (as above) (for larger numbers)
+@end multitable
+
+
+
+
+@subsection Whole-Stack Operators
+
+Each of these consumes the entire stack, pushing a single result back onto the stack.
+
+@multitable {Opr} {Args} {Intg} {Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item SS @tab * @tab   @tab The sum of all the numbers on the stack
+@item SP @tab * @tab   @tab The product of all the numbers on the stack
+@item SG @tab * @tab   @tab The geometric mean of all the numbers on the stack
+@item SQ @tab * @tab   @tab The quadratic mean of all the numbers on the stack
+@item SM @tab * @tab   @tab The mean of all the numbers on the stack
+@item SE @tab * @tab   @tab The median of all the numbers on the stack
+@item SO @tab * @tab   @tab The mode of all the numbers on the stack
+@item SD @tab * @tab   @tab The std-dev of all the numbers on the stack
+@item SU @tab * @tab   @tab The highest of all the numbers on the stack
+@item SL @tab * @tab   @tab The lowest of all the numbers on the stack
+@item SB @tab * @tab   @tab The span of all the numbers on the stack
+@item SX @tab * @tab   @tab Unique-ify the stack, eliminating duplicates
+@item SC @tab * @tab   @tab Count the numbers on the stack
+@item Sg @tab * @tab   @tab The greatest common divisor of the stack
+@item Sl @tab * @tab   @tab The least common multiple of the stack
+@end multitable
+
+
+
+
+@subsection Trigonometric Operators
+
+Most of the trigonometric functions assume angles are presented in radians.  The
+R operator will convert degrees into radians.
+
+@multitable {Opr} {Args} {Intg} {Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item ts @tab 1 @tab   @tab The sine of the number
+@item tc @tab 1 @tab   @tab The cosine of the number
+@item tt @tab 1 @tab   @tab The tangent of the number
+@item Ts @tab 1 @tab   @tab The arc sine of the number
+@item Tc @tab 1 @tab   @tab The arc cosine of the number
+@item Tt @tab 1 @tab   @tab The arc tangent of the number
+@item R  @tab 1 @tab   @tab Convert the number from degrees into radians
+@item D  @tab 1 @tab   @tab Convert the number from radians into degrees
+@end multitable
+
+
+
+
+@subsection Bitwise Operators
+
+All these operators convert arguments to integers.
+
+@multitable {Opr} {Args} {Intg} {Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item sl @tab 2 @tab y @tab Shift first number left by second number bits
+@item sr @tab 2 @tab y @tab Shift first number right by second number bits
+@item bn @tab 1 @tab y @tab Bitwise NOT of the number
+@item ba @tab 2 @tab y @tab Bitwise AND of the numbers
+@item bo @tab 2 @tab y @tab Bitwise OR of the numbers
+@item bx @tab 2 @tab y @tab Bitwise XOR of the numbers
+@end multitable
+
+
+
+
+@subsection Constants
+
+These are a set of mathematical and physical constants.  Each one is pushed onto the
+stack when encountered in parsing.
+
+@multitable {Opr} {Args} {Intg} {Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item cE @tab   @tab   @tab Push maths constant: e (2.7818...)
+@item cP @tab   @tab   @tab Push maths constant: Pi (3.1416...)
+@item cG @tab   @tab   @tab Push maths constant: Phi (1.6180...)
+@item cg @tab   @tab   @tab Push physics constant: gravitation (6.6e-11)
+@item cg @tab   @tab   @tab Push physics constant: speed of light (2.99e8)
+@item cg @tab   @tab   @tab Push physics constant: Planck's constant (6.62e-34)
+@item cg @tab   @tab   @tab Push physics constant: elementary charge (1.602e-19)
+@item cg @tab   @tab   @tab Push physics constant: Avagadro's number (6.022e23)
+@end multitable
+
+
+
+
+@subsection Miscellaneous Operators
+
+These operators either perform comparisons or handle other situations.
+
+@multitable {Opr} {Args} {Intg} {Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item g  @tab 2 @tab   @tab Push the greater of the two numbers back onto the stack
+@item l  @tab 2 @tab   @tab Push the lesser of the two numbers back onto the stack
+@item G  @tab 2 @tab   @tab If the first number is greater push 1, else 0
+@item L  @tab 2 @tab   @tab If the first number is lesser push 1, else 0
+@item =  @tab 2 @tab   @tab If the two numbers are equal, push 0, else 1
+@item M  @tab 2 @tab   @tab If the first number is 0 modulo the second, push 0, else 1
+@item _  @tab 1 @tab   @tab Converts 0 to 1, and non-zero to 0
+@item ,  @tab   @tab   @tab Separator for numbers together in one argument
+@item fR @tab   @tab   @tab Push a random floating point number [0, 1) (uses drand48)
+@item ?  @tab   @tab   @tab Print baked-in help
+@item @@ @tab   @tab   @tab Print baked-in help (for zsh users - zsh consumes ?)
+@end multitable
+
+
+
+
+@node Memory
+
+Rpcalc has some off-stack memory - 10 slots.  Each holds a long double, the same type
+as the stack.
+
+There are two operators - y and Y - to store and access these slots respectively.  Each
+must be accompanied by the slot index, from 0 to 9.
+
+The y[0-9] operator consumes the top item in the stack and stores it into the indicated
+slot, and the Y[0-9] operator retrieves (but does not destroy) the value in that slot
+and pushes it onto the stack.
+
+So once a value has been stored in a slot, it can be retrieved and used multiple times.
+
+
+
+@node Precision
+
+The default precision is 6 decimal places (default output for floats).  The maximum
+precision is 24 places but this is subject to the overall size of the number.  The
+exact method is to set a precision for printf of %.<val>, which means it sets the
+maximum decimal places, but printf may choose to show less.
+
+The maximum precision is effectively determined by the storage and computation type,
+which is long double.  The effective precision of this may be hardware-dependent.
+
+@multitable {Opr} {Args}{Intg}{Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item P  @tab 1 @tab y @tab Set precision to this many decimal places (0 to 24)
+@end multitable
+
+
+
+@node Output
+
+All of the output operators take zero arguments, and the last one wins, therefore using
+more than one of them is a botch.  They can appear at any point in the argument list.
+
+@table @var
+@item oZ
+Display output in scientific (exponent) notation.
+@item oI
+Display output as integer (converted by cast, which truncates down) in base 10.
+@item oB
+Display output as integer (converted by cast, which truncates down) in binary.
+@item oO
+Display output as integer (converted by cast, which truncates down) in octal.
+@item oX
+Display output as integer (converted by cast, which truncates down) in hexadecimal.
+@item oR
+Display output raw, without leading prefixes (ie bare hex, octal or binary).
+@item ob
+Display raw binary representation of the value.
+@end table
+
+
+@bye
+

@@ -74,6 +74,7 @@ SG  (stack)     The geometric mean of all numbers currently on the stack\n\
 SQ  (stack)     The quadratic mean (root mean square) of the entire stack\n\
 SM  (stack)     The mean of all numbers currently on the stack\n\
 SE  (stack)     The median value of all numbers currently on the stack\n\
+SO  (stack)     The modal value of all the numebrs currently on the stack\n\
 SD  (stack)     The std-dev of all numbers currently on the stack\n\
 SU  (stack)     The highest of all numbers currently on the stack\n\
 SL  (stack)     The lowest of all numbers currently on the stack\n\
@@ -96,7 +97,6 @@ Tt  (1)         Trigonometry - arc tangent of the argument\n", STACK_SIZE );
  D  (1)         Convert argument from radians to degrees\n\
  g  (2)         Pushes the greater of the two arguments\n\
  l  (2)         Pushes the lesser of the two arguments\n\
- m  (2)         The first argument modulo the second\n\
  M  (2)         If the first %% the second is 0, push 0, else push 1\n\
  G  (2)         If the first number is greater push 1, else push 0\n\
  L  (2)         If the first number is lesser push 1, else push 0\n\
@@ -131,13 +131,139 @@ IB              Disable binary input detection after this arg\n\
  ? or @         Print this help.\n\n" );
 }
 
+// because - gets processed separately, we will get negative as a
+// param, not part of the number
+
+char *handle_number( STACK *s, char *arg, int neg )
+{
+	long long int j;
+	int dopush = 0;
+	long double a;
+	char *p, *q;
+
+	p = arg;
+
+	switch( *p )
+	{
+		case '0':
+			// detect octal, hex and bin
+			switch( *(p+1) )
+			{
+				case 'x':
+				case 'X':
+					// step over that
+					p++;
+					p++;
+
+					if( hasinput( s, INTYPE_HEX ) )
+					{
+						j = strtoull( p, &q, 16 );
+						a = (long double) j;
+						p = q - 1;
+					}
+					else
+					{
+						a = strtold( p, &q );
+						p = q - 1;
+					}
+					dopush = 1;
+					break;
+
+				case 'b':
+				case 'B':
+					// step over that
+					p++;
+					p++;
+
+					if( hasinput( s, INTYPE_BIN ) )
+					{
+						j = strtoull( p, &q, 2 );
+						a = (long double) j;
+						p = q - 1;
+					}
+					else
+					{
+						a = strtold( p, &q );
+						p = q - 1;
+					}
+					dopush = 1;
+					break;
+
+				// do people still do this?
+				case 'o':
+				case 'O':
+					p++;
+					p++;
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+					if( hasinput( s, INTYPE_OCT ) )
+					{
+						j = strtoull( p, &q, 8 );
+						a = (long double) j;
+						p = q - 1;
+					}
+					else
+					{
+						a = strtold( p, &q );
+						p = q - 1;
+					}
+					dopush = 1;
+					break;
+				case '8':
+				case '9':
+				case '.':
+					a = strtold( p, &q );
+					p = q - 1;
+					dopush = 1;
+					break;
+	
+				// else... it was input
+				default:
+					push( s, 0 );
+					break;
+			}
+			break;
+
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			a = strtold( p, &q );
+			p = q - 1;
+			dopush = 1;
+			break;
+
+		default:
+			BROKEN( );
+	}
+
+	if( dopush )
+	{
+		a = ( neg ) ? -1.0 * a : a;
+		push( s, a );
+	}
+
+	return p;
+}
+
 
 void handle_arg( STACK *s, char *arg )
 {
 	long double a, b, c;
 	long long int j, k;
-	char *p, *q;
 	int st_off;
+	char *p;
 
 	for( p = arg; *p; p++ )
 	{
@@ -152,89 +278,6 @@ void handle_arg( STACK *s, char *arg )
 				break;
 
 			case '0':
-				// detect hex and octal
-				switch( *(p+1) )
-				{
-					// hex, be generous and allow X
-					case 'x':
-					case 'X':
-						// step over prefix
-						p++;
-						p++;
-						if( hasinput( s, INTYPE_HEX ) )
-						{
-							j = strtoull( p, &q, 16 );
-							p = q - 1;
-							push( s, (long double) j );
-						}
-						else
-						{
-							a = strtold( p, &q );
-							p = q - 1;
-							push( s, a );
-						}
-						break;
-					// binary - allow 0b and 0B
-					case 'b':
-					case 'B':
-						// step over prefix
-						p++;
-						p++;
-						if( hasinput( s, INTYPE_BIN ) )
-						{
-							j = strtoull( p, &q, 2 );
-							p = q - 1;
-							push( s, (long double) j );
-						}
-						else
-						{
-							a = strtold( p, &q );
-							p = q - 1;
-							push( s, a );
-						}
-						break;
-					// octal - all 0123 or 0o123 or 0O123
-					case 'o':
-					case 'O':
-						// step over prefix
-						p++;
-						p++;
-					case '0':
-					case '1':
-					case '2':
-					case '3':
-					case '4':
-					case '5':
-					case '6':
-					case '7':
-						if( hasinput( s, INTYPE_OCT ) )
-						{
-							j = strtoull( p, &q, 8 );
-							p = q - 1;
-							push( s, (long double) j );
-						}
-						else
-						{
-							a = strtold( p, &q );
-							p = q - 1;
-							push( s, a );
-						}
-						break;
-					// 8 and 9 are just regular numbers,
-					// so allow long doubles, and handle decimals
-					case '8':
-					case '9':
-					case '.':
-						a = strtold( p, &q );
-						p = q - 1;
-						push( s, a );
-						break;
-					// else... it was input
-					default:
-						push( s, 0 );
-						break;
-				}
-				break;
 			case '1':
 			case '2':
 			case '3':
@@ -244,9 +287,7 @@ void handle_arg( STACK *s, char *arg )
 			case '7':
 			case '8':
 			case '9':
-				a = strtold( p, &q );
-				p = q - 1;
-				push( s, a );
+				p = handle_number( s, p, 0 );
 				break;
 
 			case '+':
@@ -259,9 +300,7 @@ void handle_arg( STACK *s, char *arg )
 			case '-':
 				if( *(p+1) >= '0' && *(p+1) <= '9' )
 				{
-					a = strtold( p, &q );
-					p = q - 1;
-					push( s, a );
+					p = handle_number( s, p+1, 1 );
 					break;
 				}
 
@@ -534,14 +573,6 @@ void handle_arg( STACK *s, char *arg )
 				}
 				break;
 
-			case 'm':
-				need( s, 2 );
-				pop( s, &a, &b );
-				j = (long long int) a;
-				k = (long long int) b;
-				push( s, (long double) ( j % k ) );
-				break;
-
 			case 'M':
 				need( s, 2 );
 				pop( s, &a, &b );
@@ -773,6 +804,10 @@ void handle_arg( STACK *s, char *arg )
 
 					case 'E':
 						stack_median( s );
+						break;
+
+					case 'O':
+						stack_mode( s );
 						break;
 
 					case 'X':

@@ -125,6 +125,7 @@ long double nth_root( long double a, long double b );
 long double fibonnaci( long long int a );
 int stack_compare( const void *p1, const void *p2 );
 void stack_median( STACK *s );
+void stack_mode( STACK *s );
 void stack_unique( STACK *s );
 void stack_lcm( STACK *s );
 void stack_gcd( STACK *s );

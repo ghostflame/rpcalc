@@ -136,6 +136,49 @@ void stack_median( STACK *s )
 	free( tmpstack );
 }
 
+void stack_mode( STACK *s )
+{
+	long double a, *spare_stack;
+	long long int i, j = 0, c;
+	int *counters, max;
+
+	c = current( s );
+
+	spare_stack = (long double *) calloc( c, sizeof( long double ) );
+	counters = (int *) calloc( c, sizeof( int ) );
+
+	while( c > 0 )
+	{
+		pop( s, &a, NULL );
+		for( i = 0; i < j; ++i )
+			if( spare_stack[i] == a )
+			{
+				counters[i]++;
+				break;	
+			}
+
+		if( i == j )
+		{
+			spare_stack[j++] = a;
+			counters[j]++;
+		}
+		--c;
+	}
+
+	max = 0;
+	a = 0;
+	for( i = 0; i < j; ++i )
+		if( max < counters[i] )
+		{
+			max = counters[i];
+			a = spare_stack[i];
+		}
+
+	free( spare_stack );
+	free( counters );
+	push( s, a );
+}
+
 
 void stack_unique( STACK *s )
 {

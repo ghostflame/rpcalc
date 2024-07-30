@@ -14,8 +14,11 @@ $(BIN): $(OFILES)
 	$(CC) -o $(BIN) $(OFILES) -I. -lm
 
 
-addtobin: $(BIN)
+addtobin: $(BIN)  ## Installs to ~/bin, not configurable yet.
 	cp $(BIN) ~/bin/
 
-clean:
+clean:  ## CLeans all build files.
 	rm -f $(BIN) *.o
+
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

@@ -128,7 +128,7 @@ IX              Disable hexadecimal input detection after this arg\n\
 IO              Disable octal input detection after this arg\n\
 IB              Disable binary input detection after this arg\n\
  .              Wait for stdin even with arguments supplied\n\
- ?              Print this help.\n\n" );
+ ? or @         Print this help.\n\n" );
 }
 
 

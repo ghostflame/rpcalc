@@ -1,4 +1,4 @@
-# RPCAL
+# RPCALC
 
 Like `dc`, but better…
 
@@ -18,6 +18,10 @@ Examples of some commands:
 √ ; ./rpcalc 1 1 +
 2.000000
 ```
+Rpcalc will take options on the command line, or to stdin.  If you wish to provide both,
+the `.` command will cause stdin processing to occur after all command line args have been
+consumed.
+
 
 ## Get full help
 

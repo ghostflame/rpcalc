@@ -25,6 +25,7 @@ void usage( void )
 {
 	printf( "\
 Usage:  rpcalc ?\n\
+        rpcalc @\n\
         rpcalc <args> ...\n\
         <cmd> | rpcalc\n\
 \n\
@@ -612,7 +613,7 @@ void handle_arg( STACK *s, char *arg )
 				push( s, fibonnaci( j ) );
 				if( j < 93 )
 					setoutput( s, OUTTYPE_INT );
-				break; 
+				break;
 
 			case 'N':
 				p++;
@@ -1029,6 +1030,7 @@ void handle_arg( STACK *s, char *arg )
 				break;
 
 			case '?':
+			case '@':
 				usage( );
 				exit( 0 );
 				break;

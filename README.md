@@ -18,3 +18,7 @@ Examples of some commands:
 √ ; ./rpcalc 1 1 +
 2.000000
 ```
+
+## Get full help
+
+Run `rpcalc ?` (or `rpcalc "?"` in `zsh`) to get full help. You can use `rpcalc @` for all shells.

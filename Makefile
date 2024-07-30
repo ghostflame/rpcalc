@@ -7,7 +7,7 @@ FILES  = rpsrc rpargs rpstack
 OFILES = $(FILES:%=%.o)
 BIN    = rpcalc
 
-all:     $(BIN) doc
+all:     $(BIN) test doc
 
 
 $(BIN): $(OFILES)
@@ -19,6 +19,9 @@ addtobin: $(BIN)  ## Installs to ~/bin, not configurable yet.
 
 clean:  ## CLeans all build files.
 	rm -f $(BIN) *.o doc/*.info
+
+test:
+	cd testing && ./runtests.sh
 
 doc:
 	cd doc && makeinfo rpcalc.texi

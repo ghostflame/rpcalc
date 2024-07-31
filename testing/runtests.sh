@@ -1,5 +1,18 @@
 #!/bin/bash
 
+
+# Nifty colours.
+#
+# Colours for echo commands.
+# For colour codes, see https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+error=$(tput setaf 9)   # bright red.
+success=$(tput setaf 2) # normal green.
+#warning=$(tput setaf 214) # orange.
+info=$(tput setaf 99)   # purple.
+header=$(tput setaf 69) # light blue.
+#debug=$(tput setaf 240) # grey.
+reset=$(tput sgr0)
+
 tfiles=("Rpcalc-Overall.tst" "Rpcalc-Trig.tst" "Rpcalc-Bin.tst")
 bin=../rpcalc
 
@@ -50,17 +63,16 @@ function handle_file( )
 		handle_line $line
 	done < $tfile
 
-	echo "Test File:  $tfile"
-	echo "Tests:      $TRIED"
-	echo "  Passed:   $PASSED"
-	echo "  Failed:   $FAILED"
+	echo "${header}Test File:  $tfile$reset"
+	echo "${info}Tests:      $TRIED$reset"
+	echo "${success}  Passed:   $PASSED$reset"
+	echo "${error}  Failed:   $FAILED$reset"
 
 	return $FAILED
 }
 
 FTOTAL=0
 for f in ${tfiles[*]}; do
-	echo $f
 	handle_file $f
 	FTOTAL=$(($FTOTAL + $?))
 done

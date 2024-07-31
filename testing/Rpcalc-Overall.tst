@@ -41,4 +41,6 @@
 31 = 25 oO oR
 11001 = 25 oB oR
 
+# random operators
+8 = 5 F oI
 

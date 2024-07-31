@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tfile=Rpcalc-Tests.txt
+tfiles=("Rpcalc-Overall.tst" "Rpcalc-Trig.tst" "Rpcalc-Bin.tst")
 bin=../rpcalc
 
 TRIED=0
@@ -10,6 +10,7 @@ FAILED=0
 function handle_line( )
 {
 	line="$*"
+
 
 	if [ ${#line} -eq 0 ]; then
 		# empty line
@@ -37,14 +38,32 @@ function handle_line( )
 	fi
 }
 
-while IFS= read -r line; do
-	handle_line $line
-done < $tfile
+function handle_file( )
+{
+	tfile=$1
 
-echo "Tests:      $TRIED"
-echo "  Passed:   $PASSED"
-echo "  Failed:   $FAILED"
+	TRIED=0
+	PASSED=0
+	FAILED=0
 
-exit $FAILED
+	while IFS= read -r line; do
+		handle_line $line
+	done < $tfile
 
+	echo "Test File:  $tfile"
+	echo "Tests:      $TRIED"
+	echo "  Passed:   $PASSED"
+	echo "  Failed:   $FAILED"
+
+	return $FAILED
+}
+
+FTOTAL=0
+for f in ${tfiles[*]}; do
+	echo $f
+	handle_file $f
+	FTOTAL=$(($FTOTAL + $?))
+done
+
+exit $FTOTAL
 

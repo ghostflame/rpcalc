@@ -20,7 +20,7 @@ addtobin: $(BIN)  ## Installs to ~/bin, not configurable yet.
 clean:  ## CLeans all build files.
 	rm -f $(BIN) *.o doc/*.info
 
-test:
+test:   ## run the rests
 	cd testing && ./runtests.sh
 
 doc:

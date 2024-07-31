@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tfiles=("Rpcalc-Overall.tst" "Rpcalc-Trig.tst" "Rpcalc-Bin.tst")
+tfiles=("Rpcalc-Overall.tst" "Rpcalc-Trig.tst" "Rpcalc-Bin.tst" "Rpcalc-Stack.tst")
 bin=../rpcalc
 
 TRIED=0

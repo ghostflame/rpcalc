@@ -23,7 +23,7 @@ clean:  ## CLeans all build files.
 test:   ## run the rests
 	cd testing && ./runtests.sh
 
-doc:
+doc:  ## Create documentation.
 	cd doc && makeinfo rpcalc.texi
 
 .PHONY: doc

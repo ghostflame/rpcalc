@@ -66,7 +66,9 @@ function handle_file( )
 	echo "${header}Test File:  $tfile$reset"
 	echo "${info}Tests:      $TRIED$reset"
 	echo "${success}  Passed:   $PASSED$reset"
-	echo "${error}  Failed:   $FAILED$reset"
+    if [ $FAILED -gt 0 ]; then
+	    echo "${error}  Failed:   $FAILED$reset"
+    fi
 
 	return $FAILED
 }

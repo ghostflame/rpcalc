@@ -17,13 +17,13 @@ $(BIN): $(OFILES)
 addtobin: $(BIN)  ## Installs to ~/bin, not configurable yet.
 	cp $(BIN) ~/bin/
 
-clean:  ## CLeans all build files.
+clean:  ## Cleans all build files.
 	rm -f $(BIN) *.o doc/*.info
 
-test:   ## run the rests
+test:   ## Runs the tests
 	cd testing && ./runtests.sh
 
-doc:  ## Create documentation.
+doc:  ## Creates documentation.
 	cd doc && makeinfo rpcalc.texi
 
 .PHONY: doc

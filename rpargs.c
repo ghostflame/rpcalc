@@ -106,6 +106,9 @@ bn  (1) (i)     Bitwise NOT\n\
 ba  (2) (i)     Bitwise AND\n\
 bo  (2) (i)     Bitwise OR\n\
 bx  (2) (i)     Bitwise XOR\n\
+bm  (1) (i)     Mask to just argument lower bits\n\
+bu  (2) (i)     Upshift first number by second number bits\n\
+bd  (2) (i)     Downshift first number by second number bits\n\
  ,              Separator for numbers together in one argument\n\
 fR              Push random floating point number [0, 1) (uses drand48)\n\
 cE              Push mathematical constant: e (2.7818...)\n\
@@ -118,9 +121,11 @@ ce              Push physical constant: elementary charge (1.602e-19)\n\
 cm              Push physical constant: Avagadro's (6.022e23)\n\
 oZ              Display output in scientific (exponent) form\n\
 oI              Convert output to integer and display in decimal\n\
+oU              Convert output to unsigned integer and display in decimal\n\
 oB              Convert output to integer and display in binary\n\
-oO              Convert output to integer and display in octal\n\
+oO              Convert output to unsigned integer and display in octal\n\
 oX              Convert output to integer and display in hexadecimal\n\
+ox              Convert output to unsigned integer and display in hexadecimal\n\
 oR              Output options without prefixes (ie bare hex, bin, oct)\n\
 ob              Output raw binary representation of the value\n\
  P  (1)         Set the output precision (0-24)\n\
@@ -128,7 +133,7 @@ IX              Disable hexadecimal input detection after this arg\n\
 IO              Disable octal input detection after this arg\n\
 IB              Disable binary input detection after this arg\n\
  .              Wait for stdin even with arguments supplied\n\
- ? or @         Print this help.\n\n" );
+ ? or @         Print this help. (version %s)\n\n", RPCALC_VERSION );
 }
 
 // because - gets processed separately, we will get negative as a
@@ -136,7 +141,7 @@ IB              Disable binary input detection after this arg\n\
 
 char *handle_number( STACK *s, char *arg, int neg )
 {
-	long long int j;
+	int64_t j;
 	int dopush = 0;
 	long double a;
 	char *p, *q;
@@ -261,7 +266,8 @@ char *handle_number( STACK *s, char *arg, int neg )
 void handle_arg( STACK *s, char *arg )
 {
 	long double a, b, c;
-	long long int j, k;
+	uint64_t m, n;
+	int64_t j, k;
 	int st_off;
 	char *p;
 
@@ -301,12 +307,13 @@ void handle_arg( STACK *s, char *arg )
 				if( *(p+1) >= '0' && *(p+1) <= '9' )
 				{
 					p = handle_number( s, p+1, 1 );
-					break;
 				}
-
-				need( s, 2 );
-				pop( s, &a, &b );
-				push( s, a - b );
+				else
+				{
+					need( s, 2 );
+					pop( s, &a, &b );
+					push( s, a - b );
+				}
 				break;
 
 			case 'x':	// to stop the shell grabbing *
@@ -325,8 +332,8 @@ void handle_arg( STACK *s, char *arg )
 			case '%':
 				need( s, 2 );
 				pop( s, &a, &b );
-				j = (long long int) a;
-				k = (long long int) b;
+				j = (int64_t) a;
+				k = (int64_t) b;
 				push( s, (long double) ( j % k ) );
 				break;
 
@@ -555,7 +562,7 @@ void handle_arg( STACK *s, char *arg )
 					case 'l':
 						need( s, 2 );
 						pop( s, &a, &b );
-						j = (long long int) a;
+						j = (int64_t) a;
 						j <<= (int) b;
 						push( s, (long double) j );
 						break;
@@ -563,7 +570,7 @@ void handle_arg( STACK *s, char *arg )
 					case 'r':
 						need( s, 2 );
 						pop( s, &a, &b );
-						j = (long long int) a;
+						j = (int64_t) a;
 						j >>= (int) b;
 						push( s, (long double) j );
 						break;
@@ -576,8 +583,8 @@ void handle_arg( STACK *s, char *arg )
 			case 'M':
 				need( s, 2 );
 				pop( s, &a, &b );
-				j = (long long int) a;
-				k = (long long int) b;
+				j = (int64_t) a;
+				k = (int64_t) b;
 				if( ( j % k ) == 0 )
 					a = 0.0;
 				else
@@ -640,7 +647,7 @@ void handle_arg( STACK *s, char *arg )
 			case 'F':
 				need( s, 1 );
 				pop( s, &a, NULL);
-				j = (long long int) a;
+				j = (int64_t) a;
 				push( s, fibonnaci( j ) );
 				if( j < 93 )
 					setoutput( s, OUTTYPE_INT );
@@ -654,7 +661,7 @@ void handle_arg( STACK *s, char *arg )
 						need( s, 1 );
 						pop( s, &a, NULL );
 						PLIM( a, LIM_FACT_I );
-						j = (long long int) a;
+						j = (int64_t) a;
 						a = (long double) getfact( s, (int) j );
 						push( s, a );
 						break;
@@ -664,8 +671,8 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						PLIM( a, LIM_FACT_I );
 						PLIM( b, LIM_FACT_I );
-						j = (long long int) a;
-						k = (long long int) b;
+						j = (int64_t) a;
+						k = (int64_t) b;
 						a = (long double) perms( s, j, k );
 						push( s, a );
 						break;
@@ -675,8 +682,8 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						PLIM( a, LIM_FACT_I );
 						PLIM( b, LIM_FACT_I );
-						j = (long long int) a;
-						k = (long long int) b;
+						j = (int64_t) a;
+						k = (int64_t) b;
 						a = (long double) comb( s, j, k );
 						push( s, a );
 						break;
@@ -694,7 +701,7 @@ void handle_arg( STACK *s, char *arg )
 						need( s, 1 );
 						pop( s, &a, NULL );
 						PLIM( a, LIM_FACT_E );
-						j = (long long int) a;
+						j = (int64_t) a;
 						a = est_fact( j );
 						push( s, expl( a ) );
 						break;
@@ -704,8 +711,8 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						PLIM( a, LIM_FACT_E );
 						PLIM( b, LIM_FACT_E );
-						j = (long long int) a;
-						k = (long long int) b;
+						j = (int64_t) a;
+						k = (int64_t) b;
 						a = est_perms( j, k );
 						push( s, expl( a ) );
 						break;
@@ -715,8 +722,8 @@ void handle_arg( STACK *s, char *arg )
 						pop( s, &a, &b );
 						PLIM( a, LIM_FACT_E );
 						PLIM( b, LIM_FACT_E );
-						j = (long long int) a;
-						k = (long long int) b;
+						j = (int64_t) a;
+						k = (int64_t) b;
 						a = est_comb( j, k );
 						push( s, expl( a ) );
 						break;
@@ -901,34 +908,79 @@ void handle_arg( STACK *s, char *arg )
 					case 'n':
 						need( s, 1 );
 						pop( s, &b, NULL );
-						a = (long double) ~((int) b);
+						a = (long double) ~((uint64_t) b);
 						push( s, a );
 						break;
 
 					case 'a':
 						need( s, 2 );
 						pop( s, &a, &b );
-						j = (int) a;
-						k = (int) b;
-						a = (long double) ( j & k );
+						m = (uint64_t) a;
+						n = (uint64_t) b;
+						a = (long double) ( m & n );
 						push( s, a );
 						break;
 
 					case 'o':
 						need( s, 2 );
 						pop( s, &a, &b );
-						j = (int) a;
-						k = (int) b;
-						a = (long double) ( j | k );
+						m = (uint64_t) a;
+						n = (uint64_t) b;
+						a = (long double) ( m | n );
 						push( s, a );
 						break;
 
 					case 'x':
 						need( s, 2 );
 						pop( s, &a, &b );
-						j = (int) a;
-						k = (int) b;
-						a = (long double) ( j ^ k );
+						m = (uint64_t) a;
+						n = (uint64_t) b;
+						a = (long double) ( m ^ n );
+						push( s, a );
+						break;
+
+					case 'm':
+						need( s, 2 );
+						pop( s, &a, &b );
+						m = (uint64_t) a;
+						j = (long long int) b;
+						n = 0;
+						if( j > 63 )
+						{
+							fprintf( stderr, "Cannot mask lower %ld bits, limit is 63.\n", j );
+							BROKEN( );
+						}
+						for( ; j > 0; --j )
+							n = ( n << 1 ) + 1;
+						a = (long double) ( m & n );
+						push( s, a );
+						break;
+
+					case 'u':
+						need( s, 2 );
+						pop( s, &a, &b );
+						m = (uint64_t) a;
+						j = (long long int) b;
+						if( j > 63 )
+						{
+							fprintf( stderr, "Cannot upshift %ld bits, limit is 63.\n", j );
+							BROKEN( );
+						}
+						a = (long double) ( m << j );
+						push( s, a );
+						break;
+
+					case 'd':
+						need( s, 2 );
+						pop( s, &a, &b );
+						m = (uint64_t) a;
+						j = (long long int) b;
+						if( j > 63 )
+						{
+							fprintf( stderr, "Cannot downshift %ld bits, limit is 63.\n", j );
+							BROKEN( );
+						}
+						a = (long double) ( m >> j );
 						push( s, a );
 						break;
 
@@ -1015,6 +1067,10 @@ void handle_arg( STACK *s, char *arg )
 					{
 						case 'I':
 							setoutput( s, OUTTYPE_INT );
+							break;
+
+						case 'U':
+							setoutput( s, OUTTYPE_UINT );
 							break;
 
 						case 'Z':

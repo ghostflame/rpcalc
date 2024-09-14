@@ -36,7 +36,7 @@ STACK *make_stack( int max )
 	s->flags = INTYPE_HEX|INTYPE_OCT|INTYPE_BIN|OUTFLAG_PREF;
 	s->prec  = PRECISION;
 	s->vals  = (long double *) calloc( max, sizeof( long double ) );
-	s->fact  = (long long int *) calloc( 1 + MAX_FACT, sizeof( long long int ) );
+	s->fact  = (uint64_t *) calloc( 1 + MAX_FACT, sizeof( uint64_t ) );
 
 	return s;
 }
@@ -69,7 +69,7 @@ long double _pop( STACK *s )
 	return v;
 }
 
-long long int getfact( STACK *s, int which )
+uint64_t getfact( STACK *s, int which )
 {
 	int i;
 
@@ -172,7 +172,7 @@ void setoutput( STACK *s, int out )
 		s->out = out;
 }
 
-int _binstr( long long int val, char *dest, int len )
+int _binstr( uint64_t val, char *dest, int len )
 {
 	int i, l;
 
@@ -236,17 +236,23 @@ void report( STACK *s )
 	char prefbuf[4] = {0};
 	char fmtbuf[16] = {0};
 	char binbuf[136] = {0};
-	long long int j, *lp;
+	uint64_t m, *uip;
+	long long int j;
 	long double a;
 	int l;
 
 	pop( s, &a, NULL );
 	j = (long long int) a;
+	m = (uint64_t) a;
 
 	switch( s->out )
 	{
 		case OUTTYPE_INT:
 			printf( "%lld\n", j );
+			break;
+
+		case OUTTYPE_UINT:
+			printf( "%lu\n", m );
 			break;
 
 		case OUTTYPE_HEX:
@@ -258,6 +264,15 @@ void report( STACK *s )
 			printf( "%s%llx\n", prefbuf, j );
 			break;
 
+		case OUTTYPE_UHEX:
+			if( s->flags & OUTFLAG_PREF )
+			{
+				prefbuf[0] = '0';
+				prefbuf[1] = 'x';
+			}
+			printf( "%s%lx\n", prefbuf, m );
+			break;
+
 		case OUTTYPE_OCT:
 			if( j == 0 )
 				printf( "0\n" );
@@ -266,7 +281,7 @@ void report( STACK *s )
 				if( s->flags & OUTFLAG_PREF )
 					prefbuf[0] = '0';
 
-				printf( "%s%llo\n", prefbuf, j );
+				printf( "%s%lo\n", prefbuf, m );
 			}
 			break;
 
@@ -294,8 +309,8 @@ void report( STACK *s )
 
 		case OUTTYPE_DBIN:
 			// just grab the raw bits
-			lp = (long long int *) &a;
-			l = _binstr( *lp, binbuf, 72 );
+			uip = (uint64_t *) &a;
+			l = _binstr( *uip, binbuf, 72 );
 			if( s->flags & OUTFLAG_PREF )
 			{
 				prefbuf[0] = '0';

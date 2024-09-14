@@ -32,6 +32,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define RPCALC_VERSION	"0.1.0"
+
 #define STACK_SIZE		262144
 #define MAX_FACT		21
 #define LIM_FACT_I		20.0L
@@ -42,7 +44,9 @@ enum output_types
 {
 	OUTTYPE_DOUBLE = 0,
 	OUTTYPE_INT,
+	OUTTYPE_UINT,
 	OUTTYPE_HEX,
+	OUTTYPE_UHEX,
 	OUTTYPE_OCT,
 	OUTTYPE_BIN,
 	OUTTYPE_SCI,
@@ -79,7 +83,7 @@ typedef struct stacker STACK;
 struct stacker
 {
 	long double				*	vals;
-	long long int			*	fact;		// factorial record
+	uint64_t				*	fact;		// factorial record
 	long double					mem[10];	// memory section
 	int							membits;	// only lowest 10 bits matter
 	int							size;
@@ -93,7 +97,7 @@ struct stacker
 STACK *make_stack( int max );
 void push( STACK *s, long double v );
 void pop( STACK *s, long double *a, long double *b );
-long long int getfact( STACK *s, int which );
+uint64_t getfact( STACK *s, int which );
 long double peek( STACK *s, int idx );
 void flatten( STACK *s );
 void dumpstack( STACK *s );
@@ -116,13 +120,13 @@ void handle_arg( STACK *s, char *arg );
 
 // handler functions
 long double get_random_ld( void );
-long double est_fact( long long int f );
-long long int perms( STACK *s, long long int a, long long int b );
-long double est_perms( long long int a, long long int b );
-long long int comb( STACK *s, long long int a, long long int b );
-long double est_comb( long long int a, long long int b );
+long double est_fact( uint64_t f );
+uint64_t perms( STACK *s, uint64_t a, uint64_t b );
+long double est_perms( uint64_t a, uint64_t b );
+uint64_t comb( STACK *s, uint64_t a, uint64_t b );
+long double est_comb( uint64_t a, uint64_t b );
 long double nth_root( long double a, long double b );
-long double fibonnaci( long long int a );
+long double fibonnaci( uint64_t a );
 int stack_compare( const void *p1, const void *p2 );
 void stack_median( STACK *s );
 void stack_mode( STACK *s );

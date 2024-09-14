@@ -32,7 +32,7 @@ long double get_random_ld( void )
 
 
 // returns log
-long double est_fact( long long int f )
+long double est_fact( uint64_t f )
 {
 	long double ef = 0;
 
@@ -45,7 +45,7 @@ long double est_fact( long long int f )
 	return ef;
 }
 
-long long int perms( STACK *s, long long int a, long long int b )
+uint64_t perms( STACK *s, uint64_t a, uint64_t b )
 {
 	if( b > a )
 		return -1;
@@ -54,7 +54,7 @@ long long int perms( STACK *s, long long int a, long long int b )
 }
 
 // returns log
-long double est_perms( long long int a, long long int b )
+long double est_perms( uint64_t a, uint64_t b )
 {
 	if( b > a )
 		return 0.0;
@@ -62,7 +62,7 @@ long double est_perms( long long int a, long long int b )
 	return est_fact( a ) - est_fact( a - b );
 }
 
-long long int comb( STACK *s, long long int a, long long int b )
+uint64_t comb( STACK *s, uint64_t a, uint64_t b )
 {
 	if( b > a )
 		return -1;
@@ -71,7 +71,7 @@ long long int comb( STACK *s, long long int a, long long int b )
 }
 
 // returns log
-long double est_comb( long long int a, long long int b )
+long double est_comb( uint64_t a, uint64_t b )
 {
 	if( b > a )
 		return 0.0;
@@ -79,7 +79,7 @@ long double est_comb( long long int a, long long int b )
 	return est_perms( a, b ) - est_fact( b );
 }
 
-long double fibonnaci( long long int a )
+long double fibonnaci( uint64_t a )
 {
 	long double b, c, d;
 
@@ -96,7 +96,7 @@ long double fibonnaci( long long int a )
 
 long double nth_root( long double a, long double b )
 {
-	long long int c = (long long int) b;
+	uint64_t c = (uint64_t) b;
 	long double d, e;
 
 	if( c < 1 )
@@ -139,7 +139,7 @@ void stack_median( STACK *s )
 void stack_mode( STACK *s )
 {
 	long double a, *spare_stack;
-	long long int i, j = 0, c;
+	uint64_t i, j = 0, c;
 	int *counters, max;
 
 	c = current( s );
@@ -183,7 +183,7 @@ void stack_mode( STACK *s )
 void stack_unique( STACK *s )
 {
 	long double a, *spare_stack;
-	long long int i, j = 0, c;
+	uint64_t i, j = 0, c;
 
 	c = current( s );
 
@@ -209,104 +209,104 @@ void stack_unique( STACK *s )
 	free( spare_stack );
 }
 
+uint64_t __gcd_of_two( uint64_t a, uint64_t b )
+{
+	uint64_t t;
+
+	// if they are the same, return either
+	if( a == b )
+		return a;
+	else if( a < b )	// otherwise arrange a > b
+	{
+		t = a;
+		a = b;
+		b = t;
+	}
+
+	// Euclidean algorithm - iterate modulo
+	// always a is higher at the start
+	while( b > 0 )
+	{
+		a = a % b;
+		t = a;
+		a = b;
+		b = t;
+	}
+
+	return a;
+}
+
 // walk along the stack making GCD and stack product
 void stack_lcm( STACK *s )
 {
-	long long int i, v, w, x, c, pr = 1, res = 0;
+	uint64_t v, res;
 	long double a;
+	int i, c;
 
+	// unique the stack
+	stack_unique( s );
+
+	// no stack?  nothing to do
 	c = current( s );
 
-	if( c > 0 )
+	// trivial cases - stack already contains the answer, or nothing
+	if( c < 2 )
+		return;
+
+	pop( s, &a, NULL );
+	res = (uint64_t) fabsl( a );
+	c--;
+
+	// iterate along doing pairs
+	for( i = 0; i < c; ++i )
 	{
 		pop( s, &a, NULL );
-		res = (long long int) a;
-		pr = res;
-		--c;
+		v = (uint64_t) fabsl( a );
 
-		for( i = 0; i < c; ++i )
-		{
-			pop( s, &a, NULL );
-			v = (long long int) a;
-
-			// overflow risk here :-(
-			pr *= v;
-
-			// ignore duplicates
-			if( v == res )
-			  continue;
-
-			// make sure v is higher
-			if( res > v )
-			{
-				w = v;
-				v = res;
-			}
-			else
-				w = res;
-
-			// Euclidean algorithm - iterate modulo
-			// always v is higher at the start
-			while( w > 0 )
-			{
-				v = v % w;
-				x = v;
-				v = w;
-				w = x;
-			}
-
-			res = v;
-		}
+		// and use the gcd method
+		// if we ever see 0, it's 0
+		if( res > 0 && v > 0 )
+			res = res * ( v / __gcd_of_two( res, v ) );
+		else
+			res = 0;
 	}
 
-	a = (long double) ( pr / res );
+	a = (long double) res;
 	push( s, a );
 }
+
 
 // walk along the stack making GCD
 void stack_gcd( STACK *s )
 {
-	long long int i, v, w, x, c, res = 0;
+	uint64_t v, res;
 	long double a;
+	int c, i;
+
+	// unique the stack
+	stack_unique( s );
 
 	c = current( s );
 
-	if( c > 0 )
+	// does the stack already contain the answer?
+	if( c < 2 )
+		return;
+
+	pop( s, &a, NULL );
+	res = (uint64_t) a;
+	--c;
+
+	for( i = 0; i < c; ++i )
 	{
 		pop( s, &a, NULL );
-		res = (long long int) a;
-		--c;
+		v = (uint64_t) a;
 
-		for( i = 0; i < c; ++i )
-		{
-			pop( s, &a, NULL );
-			v = (long long int) a;
-
-			// ignore duplicates
-			if( v == res )
-				continue;
-
-			// make sure v is higher
-			if( res > v )
-			{
-				w = v;
-				v = res;
-			}
-			else
-				w = res;
-
-			// Euclidean algorithm - iterate modulo
-			// always v is higher at the start
-			while( w > 0 )
-			{
-				v = v % w;
-				x = v;
-				v = w;
-				w = x;
-			}
-
-			res = v;
-		}
+		// and compare these two
+		// if we ever see 0, it's 0
+		if( res > 0 && v > 0 )
+			res = __gcd_of_two( res, v );
+		else
+			res = 0;
 	}
 
 	a = (long double) res;
@@ -317,7 +317,7 @@ void stack_gcd( STACK *s )
 void stack_sd( STACK *s )
 {
 	long double m, q, a;
-	long long int c, j;
+	int c, j;
 
 	m = 0;
 	c = current( s );

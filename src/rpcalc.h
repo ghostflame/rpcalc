@@ -63,13 +63,26 @@ enum output_types
 
 #define OUTFLAG_PREF	0x0100		// leading 0x, 0, 0b
 
+/*
+
+DEPRECATED - now defined in rpargs.c, in the constants array
+
 // some constants
 #define RPCST_PHI		1.61803398874989484820L
+#define RPCST_MAGIC		0.955316618124509278163L
+#define RPCST_LEMNIS	2.62205755429211981046L
+#define RPCST_DOTTIE	0.739085133215160641655L
+#define RPCST_PARA		2.29558714939263807403L
+
 #define RPCST_AVAGADRO	6.02214076e23L
 #define RPCST_PLANCK	6.62607015e-34L
 #define RPCST_LIGHT		299792458L
 #define RPCST_GRAV		6.674301e-11L
 #define RPCST_CHARGE	1.602176634e-19L
+#define RPCST_FINE		0.0072973525643L
+#define RPCST_BOLTZ		1.380649e-23L
+#define RPCST_STEFB		5.670374419e-8L
+*/
 
 #define SQRT_FIVE		2.23606797749978969640
 
@@ -78,8 +91,11 @@ enum output_types
 #define STATE( )		printf( "a = %lf, b = %lf\n", a, b )
 #define PLIM( _x, _m )	if( _x > _m ) exit( fprintf( stderr, "Internal value limit - max is %Lf, value %Lf\n", _m, _x ) )
 
-// stack structure
+// typedefs
 typedef struct stacker STACK;
+typedef struct constant_option rpcst_opt;
+
+// stack structure
 struct stacker
 {
 	long double				*	vals;
@@ -92,6 +108,14 @@ struct stacker
 	int							flags;
 	int							prec;
 };
+
+// constants options
+struct constant_option
+{
+	char		opt;
+	long double	val;
+};
+
 
 // stack interface
 STACK *make_stack( int max );
@@ -112,14 +136,19 @@ void setinput( STACK *s, int flags, int apply );
 void setbare( STACK *s, int apply );
 void setprecision( STACK *s, int num );
 int hasinput( STACK *s, int type );
+int binstr( uint64_t val, char *dest, int len );
 void report( STACK *s );
 
 // args file
-void usage( void );
 void handle_arg( STACK *s, char *arg );
+
+// help file
+void usage( void );
 
 // handler functions
 long double get_random_ld( void );
+void set_random_seed( long double );
+long double get_timedbl( void );
 long double est_fact( uint64_t f );
 uint64_t perms( STACK *s, uint64_t a, uint64_t b );
 long double est_perms( uint64_t a, uint64_t b );

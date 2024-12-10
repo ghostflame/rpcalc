@@ -30,6 +30,25 @@ long double get_random_ld( void )
 	return (long double) drand48( );
 }
 
+void set_random_seed( long double a )
+{
+	srand48( (long) a );
+}
+
+long double get_timedbl( void )
+{
+	struct timespec ts;
+	long double t;
+
+	clock_gettime( CLOCK_REALTIME, &ts );
+
+	t  = ts.tv_nsec;
+	t /= 1000000000.0;
+	t += ts.tv_sec;
+
+	return t;
+}
+
 
 // returns log
 long double est_fact( uint64_t f )

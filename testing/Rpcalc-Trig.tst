@@ -14,9 +14,9 @@
 1.000000 = 0.75 y0 Y0 ts 2 ^ Y0 tc 2 ^ +
 
 # Reversible
-1.500000 = 1.50 ts Ts
-1.500000 = 1.50 tc Tc
-1.500000 = 1.50 tt Tt
+1.500000 = 1.50 ts tS
+1.500000 = 1.50 tc tC
+1.500000 = 1.50 tt tT
 
 # Degrees and Radians
 0.000000 = 180 R cP -

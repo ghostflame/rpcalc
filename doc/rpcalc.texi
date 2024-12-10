@@ -179,9 +179,9 @@ R operator will convert degrees into radians.
 @item ts @tab 1 @tab   @tab The sine of the number
 @item tc @tab 1 @tab   @tab The cosine of the number
 @item tt @tab 1 @tab   @tab The tangent of the number
-@item Ts @tab 1 @tab   @tab The arc sine of the number
-@item Tc @tab 1 @tab   @tab The arc cosine of the number
-@item Tt @tab 1 @tab   @tab The arc tangent of the number
+@item tS @tab 1 @tab   @tab The arc sine of the number
+@item tC @tab 1 @tab   @tab The arc cosine of the number
+@item tT @tab 1 @tab   @tab The arc tangent of the number
 @item R  @tab 1 @tab   @tab Convert the number from degrees into radians
 @item D  @tab 1 @tab   @tab Convert the number from radians into degrees
 @end multitable
@@ -216,11 +216,18 @@ stack when encountered in parsing.
 @item cE @tab   @tab   @tab Push maths constant: e (2.7818...)
 @item cP @tab   @tab   @tab Push maths constant: Pi (3.1416...)
 @item cG @tab   @tab   @tab Push maths constant: Phi (1.6180...)
+@item cM @tab   @tab   @tab Push maths constant: magic angle (0.9553...)
+@item cL @tab   @tab   @tab Push maths constant: lemniscate constant (2.622...)
+@item cD @tab   @tab   @tab Push maths constant: Dottie number (0.7390...)
+@item cQ @tab   @tab   @tab Push maths constant: Parabolic (2.2955...)
 @item cg @tab   @tab   @tab Push physics constant: gravitation (6.6e-11)
-@item cg @tab   @tab   @tab Push physics constant: speed of light (2.99e8)
-@item cg @tab   @tab   @tab Push physics constant: Planck's constant (6.62e-34)
-@item cg @tab   @tab   @tab Push physics constant: elementary charge (1.602e-19)
-@item cg @tab   @tab   @tab Push physics constant: Avagadro's number (6.022e23)
+@item cc @tab   @tab   @tab Push physics constant: speed of light (2.99e8)
+@item ch @tab   @tab   @tab Push physics constant: Planck's constant (6.62e-34)
+@item ce @tab   @tab   @tab Push physics constant: elementary charge (1.602e-19)
+@item cm @tab   @tab   @tab Push physics constant: Avagadro's number (6.022e23)
+@item cf @tab   @tab   @tab Push physics constant: fine structure (0.0072...)
+@item cb @tab   @tab   @tab Push physics constant: Boltzmann (1.3806e-23)
+@item cs @tab   @tab   @tab Push physics constant: Stefan-Boltzmann (5.6703e-8)
 @end multitable
 
 
@@ -241,6 +248,9 @@ These operators either perform comparisons or handle other situations.
 @item _  @tab 1 @tab   @tab Converts 0 to 1, and non-zero to 0
 @item ,  @tab   @tab   @tab Separator for numbers together in one argument
 @item fR @tab   @tab   @tab Push a random floating point number [0, 1) (uses drand48)
+@item fS @tab 1 @tab y @tab Set random number generator seed (uses srand48)
+@item ft @tab   @tab   @tab Push double-precision current timestamp (nsec/billion + sec)
+@item fT @tab   @tab   @tab Push current unix timestamp (sec)
 @item ?  @tab   @tab   @tab Print baked-in help
 @item @@ @tab   @tab   @tab Print baked-in help (for zsh users - zsh consumes ?)
 @end multitable

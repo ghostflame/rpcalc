@@ -1,30 +1,24 @@
 CC     = /usr/bin/gcc -std=c11 $(WFLAGS)
-
-WFLAGS = -Wall -Wshadow -Wpedantic -Wextra -Wno-unused-parameter -Wno-implicit-fallthrough
-CFLAGS = -O3 -I.
-
-FILES  = rpsrc rpargs rpstack
-OFILES = $(FILES:%=%.o)
 BIN    = rpcalc
 
-all:     $(BIN) test doc
+all:     bin test doc
 
 
-$(BIN): $(OFILES)
-	$(CC) -o $(BIN) $(OFILES) -I. -lm
-
+bin:
+	@cd src && make
 
 addtobin: $(BIN)  ## Installs to ~/bin, not configurable yet.
 	cp $(BIN) ~/bin/
 
 clean:  ## Cleans all build files.
-	rm -f $(BIN) *.o doc/*.info
+	@cd src && make clean
+	@rm -f doc/*.info
 
 test:   ## Runs the tests
-	cd testing && ./runtests.sh
+	@cd testing && ./runtests.sh
 
 doc:  ## Creates documentation.
-	cd doc && makeinfo rpcalc.texi
+	@cd doc && makeinfo rpcalc.texi
 
 .PHONY: doc
 

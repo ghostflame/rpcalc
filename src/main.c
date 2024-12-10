@@ -117,8 +117,12 @@ int main( int ac, char **av )
 	// are we a terminal?
 	t = isatty( fileno( stdin ) );
 
-	// no args? Let's look at stdin
-	if( ac == 1 )
+	// handle command-line args
+	for( i = 1; i < ac; i++ )
+		handle_arg( s, av[i] );
+
+	// if you want command-line args, plus stdin, you need to pass in . as an arg
+	if( ac == 1 || hasinput( s, INTYPE_TERM ) )
 	{
 		// don't hang
 		if( !t )
@@ -127,18 +131,8 @@ int main( int ac, char **av )
 		if( handle_stdin( s ) != 0 )
 		{
 			fprintf( stderr, "Usage: rpcalc <formula as args>\n" );
-			return 0;
+			return 0;			
 		}
-	}
-	else
-	{
-		for( i = 1; i < ac; i++ )
-			handle_arg( s, av[i] );
-
-		// allow stdin even with args from a pipe
-		// permits echo x y z | rpcalc oX
-		if( t && hasinput( s, INTYPE_TERM ) )
-			handle_stdin( s );
 	}
 
 	report( s );

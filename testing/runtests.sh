@@ -50,6 +50,20 @@ function handle_line( )
 	fi
 }
 
+function report( )
+{
+	t=$1
+	p=$2
+	f=$3
+
+	echo "${info}Tests:      ${t}${reset}"
+	echo "${success}  Passed:   ${p}${reset}"
+	if [ $f -gt 0 ]; then
+		echo "${error}  Failed:   ${f}${reset}"
+	fi
+}
+
+
 function handle_file( )
 {
 	tfile=$1
@@ -63,13 +77,35 @@ function handle_file( )
 	done < $tfile
 
 	echo "${header}Test File:  $tfile$reset"
-	echo "${info}Tests:      $TRIED$reset"
-	echo "${success}  Passed:   $PASSED$reset"
-    if [ $FAILED -gt 0 ]; then
-	    echo "${error}  Failed:   $FAILED$reset"
-    fi
+	report $TRIED $PASSED $FAILED
 
 	return $FAILED
+}
+
+function handle_pipes( )
+{
+	TRIED=0
+	PASSED=0
+	FAILED=0
+
+	ret=$(echo "1 2 3 4 SS" | ${bin})
+	((TRIED++))
+	if [ "$ret" == "10.000000" ]; then
+		((PASSED++))
+	else
+		((FAILED++))
+	fi
+
+	ret=$(echo "1 2 3 4 SS" | ${bin} . oI)
+	((TRIED++))
+	if [ "$ret" == "10" ]; then
+		((PASSED++))
+	else
+		((FAILED++))
+	fi
+
+	echo "${header}Pipes Test${reset}"
+	report $TRIED $PASSED $FAILED
 }
 
 FTOTAL=0
@@ -77,6 +113,7 @@ for f in ${tfiles[*]}; do
 	handle_file $f
 	FTOTAL=$(($FTOTAL + $?))
 done
+handle_pipes
 
 exit $FTOTAL
 

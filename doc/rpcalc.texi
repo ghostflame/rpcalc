@@ -22,7 +22,6 @@ notation calculator.
 * Arguments::               Argument handling and numeric arguments
 * Operators::               Mathematical operators
 * Memory::                  Internal memory slots
-* Precision::               Output precision and max calculations
 * Output::                  Control over output format
 
 @end menu
@@ -105,8 +104,9 @@ Disable binary input after this operator.  Assume decimal for leading 0b.
 
 
 @node Operators
+@chapter Operators
 
-@subsection Arithmetic Operators
+@section Arithmetic Operators
 
 All of the arithmetic operators consume one or more arguments and push a result back to the
 stack.
@@ -143,7 +143,7 @@ stack.
 
 
 
-@subsection Whole-Stack Operators
+@section Whole-Stack Operators
 
 Each of these consumes the entire stack, pushing a single result back onto the stack.
 
@@ -169,7 +169,7 @@ Each of these consumes the entire stack, pushing a single result back onto the s
 
 
 
-@subsection Trigonometric Operators
+@section Trigonometric Operators
 
 Most of the trigonometric functions assume angles are presented in radians.  The
 R operator will convert degrees into radians.
@@ -189,7 +189,7 @@ R operator will convert degrees into radians.
 
 
 
-@subsection Bitwise Operators
+@section Bitwise Operators
 
 All these operators convert arguments to integers.
 
@@ -206,7 +206,7 @@ All these operators convert arguments to integers.
 
 
 
-@subsection Constants
+@section Constants
 
 These are a set of mathematical and physical constants.  Each one is pushed onto the
 stack when encountered in parsing.
@@ -233,7 +233,7 @@ stack when encountered in parsing.
 
 
 
-@subsection Miscellaneous Operators
+@section Miscellaneous Operators
 
 These operators either perform comparisons or handle other situations.
 
@@ -259,6 +259,7 @@ These operators either perform comparisons or handle other situations.
 
 
 @node Memory
+@chapter Memory
 
 Rpcalc has some off-stack memory - 10 slots.  Each holds a long double, the same type
 as the stack.
@@ -274,7 +275,10 @@ So once a value has been stored in a slot, it can be retrieved and used multiple
 
 
 
-@node Precision
+@node Output
+@chapter Output
+
+@section Precision
 
 The default precision is 6 decimal places (default output for floats).  The maximum
 precision is 24 places but this is subject to the overall size of the number.  The
@@ -290,28 +294,21 @@ which is long double.  The effective precision of this may be hardware-dependent
 @end multitable
 
 
-
-@node Output
+@section Output Format
 
 All of the output operators take zero arguments, and the last one wins, therefore using
 more than one of them is a botch.  They can appear at any point in the argument list.
 
-@table @var
-@item oZ
-Display output in scientific (exponent) notation.
-@item oI
-Display output as integer (converted by cast, which truncates down) in base 10.
-@item oB
-Display output as integer (converted by cast, which truncates down) in binary.
-@item oO
-Display output as integer (converted by cast, which truncates down) in octal.
-@item oX
-Display output as integer (converted by cast, which truncates down) in hexadecimal.
-@item oR
-Display output raw, without leading prefixes (ie bare hex, octal or binary).
-@item ob
-Display raw binary representation of the value.
-@end table
+@multitable {Opr} {Args}{Intg}{Description-of-the-operator-and-what-it-does-and-any-detail}
+@headitem Op @tab Args @tab Int @tab Description
+@item oZ @tab   @tab   @tab Output in scientific (exponent) notation.
+@item oI @tab   @tab   @tab Output as integer base 10 (truncated down)
+@item oB @tab   @tab   @tab Output as binary (truncated down to integer)
+@item oO @tab   @tab   @tab Output as octal (truncated down to integer)
+@item oX @tab   @tab   @tab Output as hexadecimal (truncated down to integer)
+@item oR @tab   @tab   @tab Display output with leading prefix (eg no 0x)
+@item ob @tab   @tab   @tab Output as raw binary representation of value
+@end multitable
 
 
 @bye

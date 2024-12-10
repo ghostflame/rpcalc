@@ -32,7 +32,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define RPCALC_VERSION	"0.1.0"
+#define RPCALC_VERSION	"0.2.0"
 
 #define STACK_SIZE		262144
 #define MAX_FACT		21

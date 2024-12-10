@@ -14,7 +14,7 @@
 * limitations under the License.                                          *
 *                                                                         *
 *                                                                         *
-* help.c -help text                                                       *
+* help.c - help text                                                      *
 *                                                                         *
 * Updates:                                                                *
 **************************************************************************/
@@ -43,7 +43,7 @@ A (i) denotes integer conversion is applied before operations.\n\
  <Numbers>      These are consumed and pushed onto the stack.\n\
  +  (2)         Add the numbers together\n\
  -  (2)         Subtract the second number from the first\n\
- * or x  (2)    Multiply the numbers together (note, shells often eat *)\n\
+ x  (2)         Multiply the numbers together (note, shells often eat *)\n\
  /  (2)         Divide the first number by the second number\n\
  %%  (2) (i)     First argument modulo the second argument\n\
 rs  (1)         The square root of the argument\n\

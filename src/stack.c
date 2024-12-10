@@ -15,12 +15,26 @@
 * limitations under the License.                                          *
 *                                                                         *
 *                                                                         *
-* rpstack.c - stack handling                                              *
+* stack.c - stack interface                                               *
 *                                                                         *
 * Updates:                                                                *
 **************************************************************************/
 
 #include "rpcalc.h"
+
+// how we output
+report_fn *reporter_functions[OUTTYPE_MAX] =
+{
+	&report_default,
+	&report_int,
+	&report_uint,
+	&report_hex,
+	&report_uhex,
+	&report_oct,
+	&report_bin,
+	&report_sci,
+	&report_dbin,
+};
 
 
 STACK *make_stack( int max )
@@ -33,6 +47,7 @@ STACK *make_stack( int max )
 	s = (STACK *) calloc( 1, sizeof( STACK ) );
 	s->size  = max;
 	s->out   = OUTTYPE_DOUBLE;
+	s->rptr  = &report_default;
 	s->flags = INTYPE_HEX|INTYPE_OCT|INTYPE_BIN|OUTFLAG_PREF;
 	s->prec  = PRECISION;
 	s->vals  = (long double *) calloc( max, sizeof( long double ) );
@@ -169,31 +184,12 @@ void need( STACK *s, int count )
 void setoutput( STACK *s, int out )
 {
 	if( out >= OUTTYPE_DOUBLE && out < OUTTYPE_MAX )
-		s->out = out;
-}
-
-int binstr( uint64_t val, char *dest, int len )
-{
-	int i, l;
-
-	if( len < 65 )
-		BROKEN( );
-
-	memset( dest, 0, len );
-
-	for( l = 0, i = 0; i < 64; ++i )
 	{
-		if( ( val >> i ) & 0x1 )
-		{
-			l = 63 - i; // record last bit, for length
-			dest[63 - i] = '1';
-		}
-		else
-			dest[63 - i] = '0';
+		s->out = out;
+		s->rptr = reporter_functions[out];
 	}
-
-	return l;
 }
+
 
 void setinput( STACK *s, int flags, int apply )
 {
@@ -222,108 +218,12 @@ void setprecision( STACK *s, int num )
 		s->prec = num;
 }
 
-
 void dumpstack( STACK *s )
 {
 	int i;
 
 	for( i = 0; i < s->curr; i++ )
 		printf( " %06d   %Lf\n", i, s->vals[i] );
-}
-
-void report( STACK *s )
-{
-	char prefbuf[4] = {0};
-	char fmtbuf[16] = {0};
-	char binbuf[136] = {0};
-	uint64_t m, *uip;
-	long long int j;
-	long double a;
-	int l;
-
-	pop( s, &a, NULL );
-	j = (long long int) a;
-	m = (uint64_t) a;
-
-	switch( s->out )
-	{
-		case OUTTYPE_INT:
-			printf( "%lld\n", j );
-			break;
-
-		case OUTTYPE_UINT:
-			printf( "%lu\n", m );
-			break;
-
-		case OUTTYPE_HEX:
-			if( s->flags & OUTFLAG_PREF )
-			{
-				prefbuf[0] = '0';
-				prefbuf[1] = 'x';
-			}
-			printf( "%s%llx\n", prefbuf, j );
-			break;
-
-		case OUTTYPE_UHEX:
-			if( s->flags & OUTFLAG_PREF )
-			{
-				prefbuf[0] = '0';
-				prefbuf[1] = 'x';
-			}
-			printf( "%s%lx\n", prefbuf, m );
-			break;
-
-		case OUTTYPE_OCT:
-			if( j == 0 )
-				printf( "0\n" );
-			else
-			{
-				if( s->flags & OUTFLAG_PREF )
-					prefbuf[0] = '0';
-
-				printf( "%s%lo\n", prefbuf, m );
-			}
-			break;
-
-		case OUTTYPE_BIN:
-			if( j == 0 )
-				printf( "0\n" );
-			else
-			{
-				// glibc is no help
-				l = binstr( j, binbuf, 136 );
-
-				if( s->flags & OUTFLAG_PREF )
-				{
-					prefbuf[0] = '0';
-					prefbuf[1] = 'b';
-				}
-				printf( "%s%s\n", prefbuf, binbuf + l );
-			}
-			break;
-
-		case OUTTYPE_SCI:
-			snprintf( fmtbuf, 16, "%%.%dLg\n", s->prec );
-			printf( fmtbuf, a );
-			break;
-
-		case OUTTYPE_DBIN:
-			// just grab the raw bits
-			uip = (uint64_t *) &a;
-			l = binstr( *uip, binbuf, 72 );
-			if( s->flags & OUTFLAG_PREF )
-			{
-				prefbuf[0] = '0';
-				prefbuf[1] = 'b';
-			}
-			printf( "%s%s\n", prefbuf, binbuf + l );
-			break;
-
-		default:
-			snprintf( fmtbuf, 16, "%%.%dLf\n", s->prec );
-			printf( fmtbuf, a );
-			break;
-	}
 }
 
 

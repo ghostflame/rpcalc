@@ -15,7 +15,7 @@
 * limitations under the License.                                          *
 *                                                                         *
 *                                                                         *
-* rpcalc.c - includes, defines, function defs                             *
+* rpcalc.h - includes, defines, function defs                             *
 *                                                                         *
 * Updates:                                                                *
 **************************************************************************/
@@ -63,27 +63,6 @@ enum output_types
 
 #define OUTFLAG_PREF	0x0100		// leading 0x, 0, 0b
 
-/*
-
-DEPRECATED - now defined in rpargs.c, in the constants array
-
-// some constants
-#define RPCST_PHI		1.61803398874989484820L
-#define RPCST_MAGIC		0.955316618124509278163L
-#define RPCST_LEMNIS	2.62205755429211981046L
-#define RPCST_DOTTIE	0.739085133215160641655L
-#define RPCST_PARA		2.29558714939263807403L
-
-#define RPCST_AVAGADRO	6.02214076e23L
-#define RPCST_PLANCK	6.62607015e-34L
-#define RPCST_LIGHT		299792458L
-#define RPCST_GRAV		6.674301e-11L
-#define RPCST_CHARGE	1.602176634e-19L
-#define RPCST_FINE		0.0072973525643L
-#define RPCST_BOLTZ		1.380649e-23L
-#define RPCST_STEFB		5.670374419e-8L
-*/
-
 #define SQRT_FIVE		2.23606797749978969640
 
 
@@ -94,12 +73,15 @@ DEPRECATED - now defined in rpargs.c, in the constants array
 // typedefs
 typedef struct stacker STACK;
 typedef struct constant_option rpcst_opt;
+// reporter functions
+typedef void report_fn ( STACK *s, long double, long long int, uint64_t );
 
 // stack structure
 struct stacker
 {
 	long double				*	vals;
 	uint64_t				*	fact;		// factorial record
+	report_fn				*	rptr;
 	long double					mem[10];	// memory section
 	int							membits;	// only lowest 10 bits matter
 	int							size;
@@ -115,6 +97,7 @@ struct constant_option
 	char		opt;
 	long double	val;
 };
+
 
 
 // stack interface
@@ -149,6 +132,8 @@ void usage( void );
 long double get_random_ld( void );
 void set_random_seed( long double a );
 long double get_timedbl( void );
+
+// calc functions
 long double est_fact( uint64_t f );
 uint64_t perms( STACK *s, uint64_t a, uint64_t b );
 long double est_perms( uint64_t a, uint64_t b );
@@ -179,3 +164,15 @@ void helper_fncall( STACK *s, char op );
 void helper_root_around( STACK *s, char op );
 char *helper_input_type( STACK *s, char *p );
 void helper_output_type( STACK *s, char op );
+
+// in order, as it happens
+report_fn report_default;
+report_fn report_int;
+report_fn report_uint;
+report_fn report_hex;
+report_fn report_uhex;
+report_fn report_oct;
+report_fn report_bin;
+report_fn report_sci;
+report_fn report_dbin;
+

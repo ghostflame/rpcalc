@@ -14,7 +14,7 @@
 * limitations under the License.                                          *
 *                                                                         *
 *                                                                         *
-* rpargs.c - awful big switch, calculator implementation                  *
+* args.c - awful big switch, calculator implementation                    *
 *                                                                         *
 * Updates:                                                                *
 **************************************************************************/

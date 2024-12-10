@@ -14,7 +14,7 @@
 * limitations under the License.                                          *
 *                                                                         *
 *                                                                         *
-* rpargs.c - awful big switch, calculator implementation                  *
+* helpers.c - sub-op parsing, lots of switches                            *
 *                                                                         *
 * Updates:                                                                *
 **************************************************************************/

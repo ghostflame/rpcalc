@@ -147,7 +147,7 @@ void usage( void );
 
 // handler functions
 long double get_random_ld( void );
-void set_random_seed( long double );
+void set_random_seed( long double a );
 long double get_timedbl( void );
 long double est_fact( uint64_t f );
 uint64_t perms( STACK *s, uint64_t a, uint64_t b );
@@ -164,3 +164,18 @@ void stack_lcm( STACK *s );
 void stack_gcd( STACK *s );
 void stack_sd( STACK *s );
 
+// parsing helper functions
+void helper_const( STACK *s, char cst );
+void helper_fetch( STACK *s, char which );
+void helper_store( STACK *s, char which );
+void helper_bitwise( STACK *s, char op );
+void helper_bitshift( STACK *s, char op );
+void helper_stack_ops( STACK *s, char op );
+void helper_trig( STACK *s, char op );
+void helper_logs( STACK *s, char op );
+void helper_fact( STACK *s, char op );
+void helper_fact_est( STACK *s, char op );
+void helper_fncall( STACK *s, char op );
+void helper_root_around( STACK *s, char op );
+char *helper_input_type( STACK *s, char *p );
+void helper_output_type( STACK *s, char op );

@@ -30,8 +30,8 @@ notation calculator.
 @node Introduction
 @chapter Introduction
 
-Rpcalc is a reverse-polish calculator, conforming to @uref{https://en.wikipedia.org/wiki/Reverse_Polish_notation}.  It has a large array of operators, most of which are short
-alphabetic sequences to avoid too much shell nonsense.
+Rpcalc is a reverse-polish calculator, conforming to @uref{https://en.wikipedia.org/wiki/Reverse_Polish_notation}.
+It has a large array of operators, most of which are short alphabetic sequences to avoid too much shell nonsense.
 
 Eschewing switches, all arguments are processed as computational (so ? and @ are included
 to evoke the help text).
@@ -53,7 +53,7 @@ stdin.  Processing of the two is more or less identical.
 
 Arguments are pushed and popped from an internal stack, with a max of 128K arguments.
 
-Command line arguments are processed one at a time, first, and a give CLI argument may
+Command line arguments are processed one at a time, first, and a given CLI argument may
 be a complex string containing multiple rpcalc arguments, eg rpcalc "3 2 +".  Operators
 dump their output onto the stack, allowing chaining of calculations, eg rpcalc 3 2 + 1 -
 
@@ -98,7 +98,7 @@ Disable hexadecimal input after this operator.  Assume decimal for leading 0x.
 @item IO
 Disable octal input after this operator.  Assume decimal for leading 0 or 0o.
 @item IB
-Diable binary input after this operator.  Assume decimal for leading 0b.
+Disable binary input after this operator.  Assume decimal for leading 0b.
 @end table
 
 

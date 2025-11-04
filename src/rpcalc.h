@@ -32,7 +32,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define RPCALC_VERSION	"0.2.0"
+#define RPCALC_VERSION	"0.3.0"
 
 #define STACK_SIZE		262144
 #define MAX_FACT		21
@@ -79,10 +79,10 @@ typedef struct constant_option rpcst_opt;
 typedef struct prime_divisor PRDIV;
 typedef struct prime_set PRSET;
 typedef struct help_group HEGR;
-typedef struct op_data OPDAT;
 
-// reporter functions
+// functions
 typedef void report_fn ( STACK *s, long double, long long int, uint64_t );
+
 
 // stack structure
 struct stacker
@@ -122,8 +122,15 @@ struct prime_set
 	int32_t						is_prime;
 };
 
-extern uint64_t smaller_primes[SM_PRI_COUNT];
+struct help_group
+{
+	char						key;
+	char					*	texts[20];
+};
 
+
+extern uint64_t smaller_primes[SM_PRI_COUNT];
+extern HEGR help_groups[];
 
 // stack interface
 STACK *make_stack( int max );
@@ -151,7 +158,7 @@ void report( STACK *s );
 void handle_arg( STACK *s, char *arg );
 
 // help file
-void usage( void );
+void usage( char grp, int exval );
 
 // handler functions
 void *allocz( size_t size );
@@ -199,6 +206,7 @@ void prime_display( PRSET *p, int compact );
 int prime_relatively( uint64_t va, uint64_t vb );
 uint64_t prime_next( uint64_t val );
 uint64_t prime_prev( uint64_t val );
+
 
 // in order, as it happens
 report_fn report_default;

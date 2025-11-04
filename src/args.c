@@ -418,9 +418,11 @@ void handle_arg( STACK *s, char *arg )
 				break;
 
 			case '?':
+				usage( 0, 0 );
+				break;
+
 			case '@':
-				usage( );
-				exit( 0 );
+				usage( *(p+1), 0 );
 				break;
 
 			default:

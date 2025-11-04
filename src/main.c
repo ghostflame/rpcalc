@@ -100,8 +100,7 @@ int handle_stdin( STACK *s )
 
 void alarm_handler( int sig )
 {
-	usage( );
-	exit( 1 );
+	usage( 0, 1 );
 }
 
 
@@ -110,17 +109,6 @@ int main( int ac, char **av )
 	struct timespec ts;
 	STACK *s;
 	int i, t;
-
-	//PRSET *p;
-
-	/*
-	p = prime_factors( 81154872 );
-	prime_display( p, 1 );
-	prime_display( p, 0 );
-	printf( "%lu -> %lu\n", 1234lu, prime_next( 1234lu ) );
-	printf( "%lu <- %lu\n", 1234lu, prime_prev( 1234lu ) );
-	return 0;
-	*/
 
 	// grab the nsec from the raw clock
 	clock_gettime( CLOCK_MONOTONIC_RAW, &ts );

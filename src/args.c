@@ -398,6 +398,10 @@ void handle_arg( STACK *s, char *arg )
 				helper_output_type( s, *++p );
 				break;
 
+			case 'p':
+				helper_prime( s, *++p );
+				break;
+
 			case 'P':
 				need( s, 1 );
 				pop( s, &a, NULL );

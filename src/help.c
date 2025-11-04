@@ -21,31 +21,68 @@
 
 #include "rpcalc.h"
 
-void usage( void )
-{
-	printf( "\
+char *help_text_base[] = {
+	"\
 Usage:  rpcalc ?\n\
         rpcalc @\n\
         rpcalc <args> ...\n\
         <cmd> | rpcalc\n\
-\n\
-Rpcalc is a simple reverse-polish calculator.  It is stack based.\n\
+\n",
+"Rpcalc is a simple reverse-polish calculator.  It is stack based.\n\
 The arguments are listed below.  The numbers in brackets after the\n\
 operators are the number of arguments they consume.  In each case\n\
 the result is pushed back onto the stack.  When all arguments have\n\
 been handled, the top stack element is reported.\n\
-\n\
-Maximum stack size is %d.\n\
-\n\
-All numeric arguments are treated as type long double.\n\
+\n",
+	NULL
+};
+
+char *help_text_ops[] = {
+"All numeric arguments are treated as type long double.\n\
 A (i) denotes integer conversion is applied before operations.\n\
-\n\
- <Numbers>      These are consumed and pushed onto the stack.\n\
- +  (2)         Add the numbers together\n\
- -  (2)         Subtract the second number from the first\n\
- x  (2)         Multiply the numbers together (note, shells often eat *)\n\
- /  (2)         Divide the first number by the second number\n\
- %%  (2) (i)     First argument modulo the second argument\n\
+\n"
+"<Numbers>      These are consumed and pushed onto the stack.\n",
+" +  (2)         Add the numbers together\n",
+" -  (2)         Subtract the second number from the first\n",
+" x  (2)         Multiply the numbers together (note, shells often eat *)\n",
+" /  (2)         Divide the first number by the second number\n",
+" %%  (2) (i)     First argument modulo the second argument\n",
+" ^  (2)         Raise the first number to the power of the second\n",
+	NULL
+};
+
+struct help_group
+{
+	char		key;
+	char	**	texts;
+};
+
+typedef int op_fun ( STACK *, OPDAT * );
+
+struct op_data
+{
+	char		first;
+	char		second;
+	int		args;		// -1 means whole stack
+	int		isint;
+	char	*	help;
+};
+
+
+void usage( void )
+{
+	char **p;
+
+	for( p = help_text_base; *p; p++ )
+		printf( "%s", *p );
+
+	printf( "Max stack size is %d.\n\n", STACK_SIZE );
+
+	for( p = help_text_ops; *p; p++ )
+		printf( "%s", *p );
+
+
+printf( "\
 rs  (1)         The square root of the argument\n\
 rc  (1)         The cube root of the argument\n\
 rn  (2) (i)     The n'th (second arg) root of the first argument\n\
@@ -57,7 +94,6 @@ nY  (2)         Log of arbitrary base (second argument)\n\
 in  (1)         The inverse of the argument 1/X\n\
 rd  (1)         Round the argument to the nearest integer\n\
 rt  (1)         Round (truncate downwards) the argument\n\
- ^  (2)         Raise the first number to the power of the second\n\
  a  (1)         Absolute value of the argument\n\
 sl  (2) (i)     The first argument left-shifted by the second\n\
 sr  (2) (i)     The first argument right-shifted by the second\n\
@@ -90,7 +126,7 @@ tc  (1)         Trigonometry - cosine of the argument\n\
 tt  (1)         Trigonometry - tangent of the argument\n\
 tS  (1)         Trigonometry - arc sine of the argument\n\
 tC  (1)         Trigonometry - arc cosine of the argument\n\
-tT  (1)         Trigonometry - arc tangent of the argument\n", STACK_SIZE );
+tT  (1)         Trigonometry - arc tangent of the argument\n" );
 	// we hit the max literal string limit
 	printf( "\
  R  (1)         Convert argument from degrees to radians\n\
@@ -110,6 +146,10 @@ bx  (2) (i)     Bitwise XOR\n\
 bm  (1) (i)     Mask to just argument lower bits\n\
 bu  (2) (i)     Upshift first number by second number bits\n\
 bd  (2) (i)     Downshift first number by second number bits\n\
+pT  (1) (i)     If the number is prime, push 1, else 0\n\
+pR  (2) (i)     If the two numbers are relatively prime, push 1, else 0\n\
+pn  (1) (i)     Push the highest prime below the number to the stack\n\
+pN  (1) (i)     Push the next highest prime onto the stack\n\
  ,              Separator for numbers together in one argument\n\
 fR              Push random floating point number [0, 1) (uses drand48)\n\
 fS  (1) (i)     Set random number generator seed (uses srand48)\n\

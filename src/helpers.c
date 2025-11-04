@@ -397,6 +397,11 @@ void helper_stack_ops( STACK *s, char op )
 			push( s, a - c );
 			break;
 
+		// just remove something from the stack
+		case '-':
+			pop( s, &b, NULL );
+			break;
+
 		default:
 			BROKEN( );
 	}
@@ -724,5 +729,49 @@ void helper_output_type( STACK *s, char op )
 
 		default:
 			BROKEN( );
+	}
+}
+
+void helper_prime( STACK *s, char op )
+{
+	long double a, b;
+	uint64_t u, v;
+	int i;
+
+	switch( op )
+	{
+		case 'T':
+			need( s, 1 );
+			pop( s, &a, NULL );
+			v = (uint64_t) a;
+			i = prime_check( v );
+			push( s, (long double) i );
+			break;
+
+		case 'R':
+			need( s, 2 );
+			pop( s, &a, &b );
+			u = (uint64_t) a;
+			v = (uint64_t) b;
+			i = prime_relatively( u, v );
+			push( s, (long double) i );
+			break;
+
+		case 'N':
+			need( s, 1 );
+			pop( s, &a, NULL );
+			v = (uint64_t) a;
+			u = prime_next( v );
+			push( s, (long double) u );
+			break;
+
+		case 'n':
+			need( s, 1 );
+			pop( s, &a, NULL );
+			v = (uint64_t) a;
+			u = prime_prev( v );
+			push( s, (long double) u );
+			break;
+
 	}
 }

@@ -12,7 +12,7 @@ header=$(tput setaf 69) # light blue.
 #debug=$(tput setaf 240) # grey.
 reset=$(tput sgr0)
 
-tfiles=("Rpcalc-Overall.tst" "Rpcalc-Trig.tst" "Rpcalc-Bin.tst" "Rpcalc-Stack.tst")
+tfiles=("Overall" "Trig" "Bin" "Stack" "Prime")
 bin=../rpcalc
 
 TRIED=0
@@ -110,7 +110,8 @@ function handle_pipes( )
 
 FTOTAL=0
 for f in ${tfiles[*]}; do
-	handle_file $f
+	nm="Rpcalc-${f}.tst"
+	handle_file $nm
 	FTOTAL=$(($FTOTAL + $?))
 done
 handle_pipes

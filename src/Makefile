@@ -4,7 +4,7 @@ WFLAGS = -Wall -Wshadow -Wpedantic -Wextra -Wno-unused-parameter -Wno-implicit-f
 #CFLAGS = -O3 -I.
 CFLAGS = -g -pg -ggdb3
 
-FILES  = args calc stack help helpers report main
+FILES  = args calc stack help helpers report main prime data
 OFILES = $(FILES:%=%.o)
 BIN    = ../rpcalc
 

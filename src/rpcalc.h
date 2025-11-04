@@ -65,6 +65,9 @@ enum output_types
 
 #define SQRT_FIVE		2.23606797749978969640
 
+#define PRI_CALC_MAX	999966000289
+#define SM_PRI_COUNT	78498
+
 
 #define BROKEN( )		exit( fprintf( stderr, "Invalid formula.  Try a ?\n" ) )
 #define STATE( )		printf( "a = %lf, b = %lf\n", a, b )
@@ -73,6 +76,11 @@ enum output_types
 // typedefs
 typedef struct stacker STACK;
 typedef struct constant_option rpcst_opt;
+typedef struct prime_divisor PRDIV;
+typedef struct prime_set PRSET;
+typedef struct help_group HEGR;
+typedef struct op_data OPDAT;
+
 // reporter functions
 typedef void report_fn ( STACK *s, long double, long long int, uint64_t );
 
@@ -98,6 +106,23 @@ struct constant_option
 	long double	val;
 };
 
+struct prime_divisor
+{
+	PRDIV					*	next;
+	uint64_t					pri;
+	int32_t						pwr;
+};
+
+// prime number factorisation
+struct prime_set
+{
+	uint64_t					num;
+	PRDIV					*	divs;
+	int32_t						dct;
+	int32_t						is_prime;
+};
+
+extern uint64_t smaller_primes[SM_PRI_COUNT];
 
 
 // stack interface
@@ -129,6 +154,7 @@ void handle_arg( STACK *s, char *arg );
 void usage( void );
 
 // handler functions
+void *allocz( size_t size );
 long double get_random_ld( void );
 void set_random_seed( long double a );
 long double get_timedbl( void );
@@ -156,6 +182,7 @@ void helper_store( STACK *s, char which );
 void helper_bitwise( STACK *s, char op );
 void helper_bitshift( STACK *s, char op );
 void helper_stack_ops( STACK *s, char op );
+void helper_prime( STACK *s, char op );
 void helper_trig( STACK *s, char op );
 void helper_logs( STACK *s, char op );
 void helper_fact( STACK *s, char op );
@@ -164,6 +191,14 @@ void helper_fncall( STACK *s, char op );
 void helper_root_around( STACK *s, char op );
 char *helper_input_type( STACK *s, char *p );
 void helper_output_type( STACK *s, char op );
+
+// prime functions
+int prime_check( uint64_t val );
+PRSET *prime_factors( uint64_t val );
+void prime_display( PRSET *p, int compact );
+int prime_relatively( uint64_t va, uint64_t vb );
+uint64_t prime_next( uint64_t val );
+uint64_t prime_prev( uint64_t val );
 
 // in order, as it happens
 report_fn report_default;
